@@ -18,7 +18,7 @@ React + TypeScript (strict) + Vite + shadcn/ui + Tailwind + Framer Motion + TipT
 ## Language rules
 
 - All text is Unicode, stored NFC-normalized. Never strip or transform Telugu code points (ZWJ/ZWNJ matter).
-- Every text block carries a `lang` (`te` | `en`); render with the `lang` attribute and the matching font stack.
+- Language is never chosen by the writer: it is detected from the text (`detectLanguage`), and every rendered text block carries the resulting `lang` attribute and font stack.
 - Never hard-code UI strings; use i18next keys in both `en` and `te` locale files.
 - Do not enable CSS `hyphens` for Telugu.
 
@@ -38,3 +38,9 @@ Run `pnpm lint && pnpm typecheck && pnpm test` before declaring work done.
 ## Before adding a dependency
 
 Check it handles Telugu (complex script shaping) if it touches text rendering. Prefer existing stack choices in [docs/10-decisions.md](docs/10-decisions.md).
+
+## Git workflow
+
+- One branch per feature or fix (`feature/…`, `fix/…`, `docs/…`) cut from the default branch (`dev`; there is no `main`).
+- Commit on the branch, push it (`git push -u origin <branch>`), merge it back into `dev` with `git merge --no-ff`, then push `dev`.
+- Run `pnpm lint && pnpm typecheck && pnpm test` before each merge.

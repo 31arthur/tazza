@@ -53,6 +53,7 @@ Dependencies point **inward** to the domain. The domain imports nothing from Rea
 | [docs/08-testing-strategy.md](docs/08-testing-strategy.md) | Test pyramid, Telugu and PDF verification |
 | [docs/09-roadmap.md](docs/09-roadmap.md) | Phased delivery plan |
 | [docs/10-decisions.md](docs/10-decisions.md) | Architecture decision log |
+| [docs/11-newsroom-layout-research.md](docs/11-newsroom-layout-research.md) | Research on layout tools and practice, reference page anatomy, feature spec |
 | [CLAUDE.md](CLAUDE.md) | Rules for AI coding agents working in this repo |
 
 ## Getting started (once scaffolded)
