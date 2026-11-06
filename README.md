@@ -65,4 +65,4 @@ pnpm lint         # ESLint incl. architecture boundary rules
 pnpm build
 ```
 
-Phase 0 of the [roadmap](docs/09-roadmap.md) is scaffolded. Still open from Phase 0: shadcn/ui init, Playwright, CI workflow, dark theme. TypeScript is pinned to 6.x because typescript-eslint does not support 7 yet.
+Phases 0-2 of the [roadmap](docs/09-roadmap.md) are working end to end (write, lay out, preview/print A3). Still open: Playwright, CI workflow, dark theme, one-click PDF export. TypeScript is pinned to 6.x because typescript-eslint does not support 7 yet.

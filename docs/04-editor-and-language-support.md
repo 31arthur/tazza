@@ -10,19 +10,18 @@ TipTap lives **only** in `presentation/features/articles/editor/`. The domain st
 
 | Node / mark | Purpose |
 |---|---|
-| paragraph (with `lang` attr) | body text; `lang` drives font and `lang=""` attribute |
+| paragraph | body text; `lang` is a decoration computed from the text, not stored |
 | subhead | in-article heading |
 | pullquote | emphasised quote |
 | bulletList / orderedList | lists |
 | bold, italic, underline | marks |
-| languageSpan (mark) | inline language override for mixed text |
 | image (block) | placed from asset library with caption/credit |
 
 No headings H1-H6 or free-form HTML: the newspaper style sheet decides appearance. Pasted content is sanitised to this schema (strips fonts, sizes, colours).
 
 ### Toolbar and shortcuts
 
-- Language: `Ctrl+Alt+T` Telugu, `Ctrl+Alt+E` English for the current paragraph.
+- Language is automatic: each paragraph is tagged `lang="te"` or `"en"` from its script. There is no language toggle.
 - Phonetic mode toggle: `Ctrl+Space` (see below).
 - Standard: `Ctrl+B/I/U`, `Ctrl+Z/Y`, `Ctrl+S` (forces save).
 - Live word count, character count and estimated column inches in the footer.
@@ -81,7 +80,7 @@ Telugu needs more line height than Latin because of tall vowel signs and below-b
 - Telugu sentence ends with `.`; danda is not used. Quotation marks follow the publication style setting.
 
 ### 5. Mixed-language content
-- Each paragraph has a `lang`. Inline runs can override with `languageSpan`.
+- Each paragraph is classified automatically (Telugu when at least a third of its letters are Telugu). No manual override in v1.
 - Rendering sets `lang="te"` / `lang="en"` on the element so fonts, line-height and screen readers behave correctly.
 - Headline language can differ from body language.
 

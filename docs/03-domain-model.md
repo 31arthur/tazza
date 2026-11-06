@@ -47,8 +47,7 @@ Invariants: blocks stay inside the grid; blocks never overlap; one article appea
 |---|---|---|
 | id | `ArticleId` | |
 | editionId | `EditionId` | |
-| language | `Language` | `te` or `en` (default for body) |
-| headline, subHeadline | `RichLine` | text + lang |
+| headline, subHeadline, byline | string | language is detected from the text, never chosen |
 | byline, dateline | string | |
 | body | `ArticleBody` | editor-agnostic document tree (see below) |
 | section | `Section` | Local, State, National, World, Sports, Editorial, Business, Entertainment |
@@ -64,15 +63,15 @@ Stored as a small, editor-agnostic tree so the domain and storage do not depend 
 
 ```ts
 type Node =
-  | { type: 'paragraph'; lang: Language; children: Inline[] }
-  | { type: 'subhead';   lang: Language; children: Inline[] }
-  | { type: 'pullquote'; lang: Language; children: Inline[] }
+  | { type: 'paragraph'; children: Inline[] }
+  | { type: 'subhead';   children: Inline[] }
+  | { type: 'pullquote'; children: Inline[] }
   | { type: 'list'; ordered: boolean; items: Inline[][] };
 
-type Inline = { text: string; marks?: ('bold' | 'italic' | 'underline')[]; lang?: Language };
+type Inline = { text: string; marks?: ('bold' | 'italic' | 'underline')[] };
 ```
 
-A presentation-layer mapper converts `ArticleBody ⇄ TipTap JSON`. Swapping the editor means rewriting only that mapper.
+Language is not stored. `detectLanguage(text)` (domain service) classifies each paragraph by script (Telugu vs Latin), so Telugu and English can be mixed freely in one article. The renderer sets `lang` from it. A presentation-layer mapper converts `ArticleBody ⇄ TipTap JSON`. Swapping the editor means rewriting only that mapper.
 
 ### Asset
 `{ id, mimeType, widthPx, heightPx, byteSize, blobRef }`. Blob bytes live in the data layer; the domain sees metadata only.

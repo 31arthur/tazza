@@ -1,10 +1,61 @@
 {
   "app": { "name": "Tazza", "tagline": "Fresh news, every day" },
-  "nav": { "desk": "Desk", "layout": "Layout", "preview": "Preview", "settings": "Settings" },
-  "home": {
-    "title": "Today's edition",
-    "subtitle": "Write in Telugu and English, lay out A3 pages, export the PDF.",
-    "sample": "Sample headline: the government announced a new scheme today"
+  "nav": { "write": "Write", "layout": "Layout", "preview": "Preview" },
+  "edition": { "date": "Edition date" },
+  "language": { "te": "Telugu", "en": "English", "switch": "Interface language" },
+  "errors": { "generic": "Something went wrong" },
+  "save": { "saved": "Saved", "dirty": "Unsaved changes", "saving": "Saving…", "error": "Save failed" },
+  "toolbar": {
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "subhead": "Subhead",
+    "quote": "Pull quote",
+    "bullets": "Bulleted list",
+    "numbers": "Numbered list",
+    "image": "Insert image",
+    "undo": "Undo",
+    "redo": "Redo"
   },
-  "language": { "te": "Telugu", "en": "English", "switch": "Interface language" }
+  "write": {
+    "newArticle": "New article",
+    "empty": "No articles yet. Start with a new article.",
+    "untitled": "Untitled",
+    "select": "Select an article, or create a new one.",
+    "headline": "Headline",
+    "subHeadline": "Sub-headline",
+    "byline": "Byline (reporter, place)",
+    "body": "Story text",
+    "placed": "On page {{page}}",
+    "unplaced": "Not placed",
+    "delete": "Delete",
+    "confirmDelete": "Delete this article?",
+    "words": "{{count}} words",
+    "imageFailed": "Could not add the image"
+  },
+  "layout": {
+    "autoLayout": "Auto layout",
+    "clear": "Clear layout",
+    "confirmClear": "Remove all stories from the pages?",
+    "unplaced": "Unplaced stories",
+    "allPlaced": "All stories are placed.",
+    "placeOnPage": "Place on page {{page}}",
+    "addPage": "Add page",
+    "removePage": "Remove page",
+    "page": "Page {{n}}",
+    "zoom": "Zoom",
+    "column": "Column",
+    "columns": "Columns",
+    "row": "Row",
+    "rows": "Rows",
+    "moveToPage": "Move to page",
+    "remove": "Remove from page",
+    "overflow": "Text overflows - enlarge",
+    "hint": "Select a story to edit its size. Drag to move; drag the blue corner to resize."
+  },
+  "preview": {
+    "print": "Print / Save as PDF",
+    "hint": "A3 pages, exactly as printed. In the print dialog choose Save as PDF, paper size A3, margins None, scale 100%.",
+    "empty": "No stories on the pages yet. Use"
+  }
 }
