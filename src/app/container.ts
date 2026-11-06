@@ -16,6 +16,12 @@ import { GetOrCreateEdition } from '@domain/usecases/edition/GetOrCreateEdition'
 import { RestoreEdition } from '@domain/usecases/edition/RestoreEdition';
 import { UpdateMasthead } from '@domain/usecases/edition/UpdateMasthead';
 import type { UseCases } from '@domain/usecases';
+import { AddObject } from '@domain/usecases/objects/AddObject';
+import { AlignObject } from '@domain/usecases/objects/AlignObject';
+import { DuplicateObject } from '@domain/usecases/objects/DuplicateObject';
+import { RemoveObject } from '@domain/usecases/objects/RemoveObject';
+import { ReorderObject } from '@domain/usecases/objects/ReorderObject';
+import { UpdateObject } from '@domain/usecases/objects/UpdateObject';
 import { AddElement } from '@domain/usecases/layout/AddElement';
 import { AddPage } from '@domain/usecases/layout/AddPage';
 import { ApplyTemplate } from '@domain/usecases/layout/ApplyTemplate';
@@ -64,6 +70,12 @@ export const createContainer = (): Container => {
     applyTemplate: new ApplyTemplate(articles, editions, ids),
     dropArticle: new DropArticle(articles, editions, ids),
     addElement: new AddElement(articles, editions, ids),
+    addObject: new AddObject(editions, ids),
+    updateObject: new UpdateObject(editions),
+    removeObject: new RemoveObject(editions),
+    duplicateObject: new DuplicateObject(editions, ids),
+    reorderObject: new ReorderObject(editions),
+    alignObject: new AlignObject(editions),
     updateElement: new UpdateElement(articles, editions),
     placeArticle: new PlaceArticle(articles, editions, ids),
     clearSlot: new ClearSlot(articles, editions),

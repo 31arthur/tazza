@@ -1,10 +1,13 @@
 import { LayoutError } from '../errors/DomainError';
 import type { Masthead } from '../layout/style';
+import type { PageObject } from '../layout/objects';
 import { articleIdsOf, clearArticle, type LayoutNode } from '../layout/tree';
 
 export interface Page {
   readonly number: number;
   readonly layout: LayoutNode;
+  /** Free objects drawn above the tiles, bottom to top. They never affect how stories fit. */
+  readonly objects?: readonly PageObject[];
 }
 
 /** One newspaper edition per calendar date; its id is the ISO date (YYYY-MM-DD). */
@@ -35,7 +38,8 @@ export const findPage = (edition: Edition, pageNumber: number): Page => {
 
 export const replacePage = (edition: Edition, page: Page): Edition => ({
   ...edition,
-  pages: edition.pages.map((p) => (p.number === page.number ? page : p)),
+  // Merge so fields the caller did not mention (such as free objects) are kept.
+  pages: edition.pages.map((p) => (p.number === page.number ? { ...p, ...page } : p)),
 });
 
 /** Takes an article off every page; its slot stays behind, empty. */

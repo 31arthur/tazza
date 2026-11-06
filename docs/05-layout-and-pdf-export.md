@@ -86,6 +86,17 @@ Besides stories, a page can hold **elements**, which are tiles too (drag, swap, 
 - **Shortcuts** (not active while typing in a field): Delete takes the story out of the selected tile, Shift+Delete deletes the space, Esc deselects, G toggles guides, + and - zoom.
 - **Column guides**: the six columns (cyan) and the live area (magenta) drawn over the page.
 
+### Free objects (Canva-style layer)
+
+A page can also hold **free objects**: text boxes, rectangles, ellipses, lines and image frames placed anywhere in millimetres, drawn **above** the tiles in stacking order. They never change how stories fit.
+
+- **Insert** from the Insert palette; the new object is centred and selected.
+- **Move** by dragging; **resize** with the eight handles (unrotated objects); **rotate** with the round handle (Shift snaps to 15°). Hold **Alt** to switch snapping off.
+- **Smart guides**: objects snap to page edges and centre, margins, every column edge, and the edges and centres of other objects; magenta lines show what you snapped to.
+- **Inspector**: exact X, Y, width, height and rotation (mm, degrees), align to margins or page edges, arrange (front, forward, backward, back), fill and outline from the colour palette, text size, font, bold, italic, alignment and colour, photo and fit.
+- **Layers panel**: top of the stack first; select, move up/down, hide, lock.
+- **Keyboard**: arrows nudge 1 mm (Shift 10 mm), Ctrl+D duplicates, [ and ] reorder (Shift for front/back), Delete removes, Esc deselects. Every change is undoable.
+
 ### Templates
 
 Templates are data (`domain/layout/templates.ts`): front page (8, 5 or 3 stories), inner page (6, 4 or 2 stories) and single story. Slot **priority** decides which story goes where: the heaviest stories take priority 1. **Auto layout** picks, for each page, the fullest template whose stories still fit (fill ≤ 100%), adds pages as needed and leaves no empty tiles.

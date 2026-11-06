@@ -41,7 +41,7 @@ What a newspaper needs that Canva does not have: a column grid, text that flows 
 
 ## 4. Capability map
 
-Status: ✅ done · 🔨 building now (Phase A) · ⏭ planned · 💭 later.
+Status: ✅ done (Phase A shipped) · ⏭ planned · 💭 later.
 
 ### Content
 | Capability | Status |
@@ -63,10 +63,10 @@ Status: ✅ done · 🔨 building now (Phase A) · ⏭ planned · 💭 later.
 | Tile styles, palette, rules, kicker, jump line, banner headline | ✅ |
 | Layout elements (photo, text box, sidebar, label, ad) | ✅ |
 | Undo/redo, shortcuts, column guides | ✅ |
-| **Free objects layer** (text, shapes, lines, images anywhere on the page) | 🔨 |
-| **Smart guides and snapping** (page, margins, columns, other objects) | 🔨 |
-| **Align to page and columns, z-order, duplicate, lock, hide** | 🔨 |
-| **Layers panel** | 🔨 |
+| **Free objects layer** (text, shapes, lines, images anywhere on the page) | ✅ |
+| **Smart guides and snapping** (page, margins, columns, other objects) | ✅ |
+| **Align to page and columns, z-order, duplicate, lock, hide** | ✅ |
+| **Layers panel** | ✅ |
 | Multi-select, group, distribute, align to selection | ⏭ |
 | Rulers and draggable guides | ⏭ |
 | Master pages (repeat header, folio, rules per section) | ⏭ |
@@ -84,7 +84,7 @@ Status: ✅ done · 🔨 building now (Phase A) · ⏭ planned · 💭 later.
 | Asset library panel (search, tags, credit, reuse across editions) | ⏭ |
 | Crop with focal point, rotate, brightness/contrast, greyscale | ⏭ |
 | Background removal / cut-out | 💭 |
-| Shapes, lines, arrows, icons | 🔨 (basic shapes) / ⏭ (icon set) |
+| Shapes, lines, arrows, icons | ✅ basic shapes · ⏭ icon set |
 
 ### Output
 | Capability | Status |
@@ -177,7 +177,7 @@ Each phase is one or more branches (`feature/…`) merged back into `dev`, with 
 
 | Phase | Branch | Scope | Done when |
 |---|---|---|---|
-| **A** | `feature/free-objects` | Free objects layer, select/move/resize/rotate, snapping and smart guides, align to page, z-order, duplicate, lock/hide, insert text/shape/line/image, object panel, layers panel | A designer can add a stamp, arrow, cut-out photo or label anywhere on the page, snap it to columns and margins, and see it identically in preview |
+| **A ✅** | `feature/free-objects` | Free objects layer, select/move/resize/rotate, snapping and smart guides, align to page, z-order, duplicate, lock/hide, insert text/shape/line/image, object panel, layers panel | A designer can add a stamp, arrow, cut-out photo or label anywhere on the page, snap it to columns and margins, and see it identically in preview |
 | B | `feature/multi-select` | Multi-select, group/ungroup, distribute, align to selection, rulers, draggable guides, marquee select | Align three boxes in two clicks |
 | C | `feature/masters-and-styles` | Master pages, style library, brand kit, templates gallery, save page as template | New edition from a saved template in one click |
 | D | `feature/linked-frames` | Continue a story in another tile, automatic "continued on page N" and "continued from", overset resolution | A long story flows across two pages with jump lines |

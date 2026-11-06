@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Columns3,
   GripVertical,
@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { placedArticleIds } from '@domain/entities/Edition';
 import { pageFill } from '@domain/layout/fit';
+import type { ObjectPatch } from '@domain/layout/objects';
 import { resolveMasthead } from '@domain/layout/style';
 import { TEMPLATE_IDS, type TemplateId } from '@domain/layout/templates';
 import { layoutRects, leavesOf, type SlotRole } from '@domain/layout/tree';
@@ -35,7 +36,11 @@ import { DividerHandle } from './DividerHandle';
 import { EditableLeaf } from './EditableLeaf';
 import { ElementPalette } from './ElementPalette';
 import { ElementPanel } from './ElementPanel';
+import { LayersPanel } from './LayersPanel';
 import { MastheadPanel } from './MastheadPanel';
+import { ObjectPalette } from './ObjectPalette';
+import { ObjectPanel } from './ObjectPanel';
+import { ObjectsEditor } from './ObjectsEditor';
 import { StylePanel } from './StylePanel';
 import { useLayoutDnd, type DragSource, type DropTarget } from './useLayoutDnd';
 
@@ -66,10 +71,17 @@ export function LayoutPage() {
   const { data: articleList = [] } = useArticles();
   const actions = useLayoutActions();
   const { ref, scale: fit } = useFitScale(64);
-  const pageRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLDivElement | null>(null);
+  const [pageElement, setPageElement] = useState<HTMLDivElement | null>(null);
+  const setPageNode = useCallback((el: HTMLDivElement | null) => {
+    pageRef.current = el;
+    setPageElement(el);
+  }, []);
   const [zoom, setZoom] = useState(1);
   const [pageNumber, setPageNumber] = useState(1);
   const [selectedLeafId, setSelectedLeafId] = useState<string | undefined>();
+  const [selectedObjectId, setSelectedObjectId] = useState<string | undefined>();
+  const [objectDraft, setObjectDraft] = useState<{ id: string; patch: ObjectPatch } | undefined>();
   const [guides, setGuides] = useState(false);
   const { undo, redo, canUndo, canRedo } = useUndoRedo();
   const scale = fit * zoom;
@@ -104,6 +116,17 @@ export function LayoutPage() {
     },
   });
 
+  const selectedObject = page?.objects?.find((o) => o.id === selectedObjectId);
+
+  const selectLeaf = (id: string | undefined) => {
+    setSelectedLeafId(id);
+    setSelectedObjectId(undefined);
+  };
+  const selectObject = (id: string | undefined) => {
+    setSelectedObjectId(id);
+    setSelectedLeafId(undefined);
+  };
+
   // Keyboard shortcuts, as in a desktop layout tool. They never fire while typing in a field.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -113,6 +136,38 @@ export function LayoutPage() {
       if (typing) return;
       const mod = e.ctrlKey || e.metaKey;
       const key = e.key.toLowerCase();
+      if (selectedObject && page && !mod) {
+        const step = e.shiftKey ? 10 : 1;
+        const nudge: Record<string, ObjectPatch> = {
+          ArrowLeft: { x: selectedObject.x - step },
+          ArrowRight: { x: selectedObject.x + step },
+          ArrowUp: { y: selectedObject.y - step },
+          ArrowDown: { y: selectedObject.y + step },
+        };
+        const patch = nudge[e.key];
+        if (patch && !selectedObject.locked) {
+          e.preventDefault();
+          void actions.updateObject(page.number, selectedObject.id, patch);
+          return;
+        }
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+          e.preventDefault();
+          void actions.removeObject(page.number, selectedObject.id);
+          setSelectedObjectId(undefined);
+          return;
+        }
+        if (e.key === ']' || e.key === '[') {
+          const forward = e.key === ']';
+          const op = e.shiftKey ? (forward ? 'front' : 'back') : forward ? 'forward' : 'backward';
+          void actions.reorderObject(page.number, selectedObject.id, op);
+          return;
+        }
+      }
+      if (selectedObject && page && mod && key === 'd') {
+        e.preventDefault();
+        void actions.duplicateObject(page.number, selectedObject.id).then((id) => id && selectObject(id));
+        return;
+      }
       if (mod && key === 'z') {
         e.preventDefault();
         void (e.shiftKey ? redo() : undo());
@@ -121,6 +176,7 @@ export function LayoutPage() {
         void redo();
       } else if (e.key === 'Escape') {
         setSelectedLeafId(undefined);
+        setSelectedObjectId(undefined);
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedLeafId && page) {
         e.preventDefault();
         void (e.shiftKey
@@ -152,12 +208,20 @@ export function LayoutPage() {
   const goToPage = (n: number) => {
     setPageNumber(n);
     setSelectedLeafId(undefined);
+    setSelectedObjectId(undefined);
+    setObjectDraft(undefined);
+  };
+
+  const pageObjects = page.objects ?? [];
+  const addObject = async (tool: Parameters<typeof actions.addObject>[1]) => {
+    const id = await actions.addObject(page.number, tool);
+    if (id) selectObject(id);
   };
 
   return (
     <div className="grid h-full grid-cols-[17rem_1fr_15rem]">
       {/* Left: tools and unplaced stories */}
-      <aside className="flex min-h-0 flex-col border-r bg-card">
+      <aside className="flex min-h-0 flex-col overflow-y-auto border-r bg-card">
         <div className="flex flex-col gap-2 border-b p-3">
           <Button onClick={() => void actions.autoLayout()} disabled={unplaced.length === 0}>
             <Wand2 /> {t('layout.autoLayout')}
@@ -197,10 +261,18 @@ export function LayoutPage() {
           onStartDrag={dnd.start}
           onAdd={(kind) => void actions.addElement(page.number, { kind })}
         />
+        <ObjectPalette onAdd={(tool) => void addObject(tool)} />
+        <LayersPanel
+          objects={pageObjects}
+          selectedId={selectedObjectId}
+          onSelect={selectObject}
+          onPatch={(id, patch) => void actions.updateObject(page.number, id, patch)}
+          onArrange={(id, op) => void actions.reorderObject(page.number, id, op)}
+        />
         <h2 className="px-3 pt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {t('layout.unplaced')} ({unplaced.length})
         </h2>
-        <ul className="min-h-0 flex-1 overflow-y-auto p-2">
+        <ul className="max-h-64 shrink-0 overflow-y-auto p-2">
           {unplaced.length === 0 && (
             <li className="p-2 text-sm text-muted-foreground">
               {articleList.length === 0 ? (
@@ -341,15 +413,19 @@ export function LayoutPage() {
         <div
           ref={ref}
           className="flex-1 overflow-auto bg-neutral-200 p-8"
-          onPointerDown={() => setSelectedLeafId(undefined)}
+          onPointerDown={() => {
+            setSelectedLeafId(undefined);
+            setSelectedObjectId(undefined);
+          }}
         >
           <div className="mx-auto w-fit">
-            <ScaledPage scale={scale} innerRef={pageRef}>
+            <ScaledPage scale={scale} innerRef={setPageNode}>
               <PageRenderer
                 page={page}
                 editionId={editionId}
                 masthead={resolveMasthead(edition.masthead)}
                 articles={articles}
+                objectsDraft={objectDraft}
                 renderLeaf={(args) => (
                   <EditableLeaf
                     {...args}
@@ -357,7 +433,7 @@ export function LayoutPage() {
                     dragging={dnd.drag?.source.fromLeafId === args.placed.leaf.id}
                     overflowText={t('layout.overflow')}
                     emptyText={t('layout.emptySlot')}
-                    onSelect={() => setSelectedLeafId(args.placed.leaf.id)}
+                    onSelect={() => selectLeaf(args.placed.leaf.id)}
                     onStartDrag={dnd.start}
                   />
                 )}
@@ -379,6 +455,17 @@ export function LayoutPage() {
                           }
                         />
                       ))}
+                      <ObjectsEditor
+                        objects={pageObjects}
+                        pageNumber={page.number}
+                        scale={scale}
+                        pageElement={pageElement}
+                        selectedId={selectedObjectId}
+                        draft={objectDraft}
+                        onSelect={selectObject}
+                        onDraft={setObjectDraft}
+                        onCommit={(id, patch) => void actions.updateObject(page.number, id, patch)}
+                      />
                       {target && targetRect && (
                         <div
                           aria-hidden
@@ -411,7 +498,21 @@ export function LayoutPage() {
 
       {/* Right: inspector */}
       <aside className="min-h-0 overflow-y-auto border-l bg-card p-3">
-        {selectedLeaf ? (
+        {selectedObject ? (
+          <ObjectPanel
+            object={selectedObject}
+            onPatch={(patch) => void actions.updateObject(page.number, selectedObject.id, patch)}
+            onAlign={(mode, to) => void actions.alignObject(page.number, selectedObject.id, mode, to)}
+            onArrange={(op) => void actions.reorderObject(page.number, selectedObject.id, op)}
+            onDuplicate={() =>
+              void actions.duplicateObject(page.number, selectedObject.id).then((id) => id && selectObject(id))
+            }
+            onRemove={() => {
+              void actions.removeObject(page.number, selectedObject.id);
+              setSelectedObjectId(undefined);
+            }}
+          />
+        ) : selectedLeaf ? (
           <div className="flex flex-col gap-3">
             <div
               lang={detectLanguage(selectedArticle?.headline ?? '')}
