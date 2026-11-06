@@ -6,7 +6,8 @@
   "nav": {
     "write": "Write",
     "layout": "Layout",
-    "preview": "Preview"
+    "preview": "Preview",
+    "templates": "Templates"
   },
   "edition": {
     "date": "Edition date"
@@ -147,7 +148,11 @@
       "blue": "Blue",
       "green": "Green",
       "amber": "Amber"
-    }
+    },
+    "saved": "Saved styles",
+    "applySaved": "Apply saved style…",
+    "saveAs": "Save this style…",
+    "saveName": "Name for this style"
   },
   "masthead": {
     "title": "Masthead",
@@ -159,7 +164,9 @@
     "rightEar": "Right ear",
     "earHint": "First line is the headline",
     "topStrip": "Top strip text",
-    "printMarks": "Colour registration marks"
+    "printMarks": "Colour registration marks",
+    "saveBrandKit": "Save as brand kit",
+    "brandKitHint": "New editions will start with this masthead"
   },
   "elements": {
     "title": "Add element",
@@ -264,5 +271,47 @@
     "rulers": "Rulers and guides",
     "clearGuides": "Clear ruler guides",
     "marqueeHint": "Drag on empty space to select several objects. Shift-click adds or removes."
+  },
+  "masters": {
+    "master": "Master",
+    "none": "No master",
+    "hint": "A master repeats its objects behind every page that uses it",
+    "create": "New master",
+    "createHint": "Move this page's objects onto a new master",
+    "edit": "Edit master",
+    "editing": "Editing master: {{name}}. Changes appear on every page that uses it.",
+    "done": "Done",
+    "rename": "Rename",
+    "delete": "Delete",
+    "namePrompt": "Master name",
+    "confirmDelete": "Delete this master? Pages that use it will stop showing it."
+  },
+  "templates": {
+    "title": "Templates and brand",
+    "intro": "Save pages, whole editions, tile styles and your masthead once, and reuse them every day.",
+    "pageTemplates": "Page templates",
+    "pageHint": "A page's tiles, styles and objects without its stories. Apply to any page; its stories are poured into the new slots.",
+    "editionTemplates": "Edition templates",
+    "editionHint": "All pages, masters and the masthead of an edition, without stories. Start tomorrow's edition from it.",
+    "tileStyles": "Saved tile styles",
+    "styleHint": "Named styles for tiles. Save one from a tile's Style panel.",
+    "brandKit": "Brand kit",
+    "brandHint": "The masthead every new edition starts with.",
+    "emptyPages": "No page templates yet. On the Layout screen, press Save page as template.",
+    "emptyEditions": "No edition templates yet. On the Layout screen, press Save edition as template.",
+    "emptyStyles": "No saved styles yet.",
+    "emptyBrand": "No brand kit yet. Edit the masthead on the Layout screen and press Save as brand kit.",
+    "applyToPage": "Apply page template…",
+    "targetPage": "Page to apply to",
+    "apply": "Apply",
+    "useForEdition": "Use for this edition",
+    "confirmUseEdition": "Replace this edition's pages, masters and masthead with the template? Stories stay but become unplaced.",
+    "delete": "Delete",
+    "confirmDelete": "Delete \"{{name}}\"?",
+    "savePage": "Save page as template",
+    "saveEdition": "Save edition as template",
+    "pageName": "Name for this page template",
+    "editionName": "Name for this edition template",
+    "pageCount": "{{count}} pages"
   }
 }

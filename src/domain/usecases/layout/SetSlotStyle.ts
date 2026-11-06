@@ -1,6 +1,6 @@
 import type { Edition } from '../../entities/Edition';
 import type { LeafStyle } from '../../layout/style';
-import { setLeafStyle } from '../../layout/tree';
+import { setLeafRole, setLeafStyle, type SlotRole } from '../../layout/tree';
 import type { ArticleRepository } from '../../ports/repositories/ArticleRepository';
 import type { EditionRepository } from '../../ports/repositories/EditionRepository';
 import { changePageLayout, type PageRef } from './support';
@@ -13,10 +13,10 @@ export class SetSlotStyle {
   ) {}
 
   execute(
-    ref: PageRef & { leafId: string; style: Partial<LeafStyle> | null },
+    ref: PageRef & { leafId: string; style: Partial<LeafStyle> | null; role?: SlotRole },
   ): Promise<Edition> {
     return changePageLayout({ articles: this.articles, editions: this.editions }, ref, (layout) =>
-      setLeafStyle(layout, ref.leafId, ref.style),
+      setLeafStyle(ref.role ? setLeafRole(layout, ref.leafId, ref.role) : layout, ref.leafId, ref.style),
     );
   }
 }

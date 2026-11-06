@@ -1,6 +1,7 @@
 import { LayoutError } from '../errors/DomainError';
 import type { Masthead } from '../layout/style';
 import type { PageObject } from '../layout/objects';
+import type { Master } from './Master';
 import type { Guide } from '../layout/snapping';
 import { articleIdsOf, clearArticle, type LayoutNode } from '../layout/tree';
 
@@ -11,6 +12,8 @@ export interface Page {
   readonly objects?: readonly PageObject[];
   /** Ruler guides the designer dragged out; objects snap to them. */
   readonly guides?: readonly Guide[];
+  /** The master whose objects repeat behind this page. */
+  readonly masterId?: string;
 }
 
 /** One newspaper edition per calendar date; its id is the ISO date (YYYY-MM-DD). */
@@ -19,7 +22,13 @@ export interface Edition {
   readonly pages: readonly Page[];
   /** Overrides of the default masthead (logo, ears, colours). */
   readonly masthead?: Partial<Masthead>;
+  /** Masters available to this edition's pages. */
+  readonly masters?: readonly Master[];
 }
+
+/** The objects of the master a page uses (drawn behind the page), or none. */
+export const masterObjectsFor = (edition: Edition, page: Page): readonly PageObject[] =>
+  edition.masters?.find((m) => m.id === page.masterId)?.objects ?? [];
 
 export const newEdition = (id: string, firstPage: LayoutNode): Edition => ({
   id,

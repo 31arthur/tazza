@@ -28,6 +28,8 @@ export async function loadLayoutContext(
 export interface PageRef {
   editionId: string;
   pageNumber: number;
+  /** When set, object commands act on this master's objects instead of the page's. */
+  masterId?: string;
 }
 
 export interface LayoutDeps {

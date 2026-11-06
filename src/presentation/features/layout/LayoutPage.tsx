@@ -12,11 +12,11 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { placedArticleIds } from '@domain/entities/Edition';
+import { masterObjectsFor, placedArticleIds } from '@domain/entities/Edition';
 import { pageFill } from '@domain/layout/fit';
 import { resolveMasthead } from '@domain/layout/style';
 import { TEMPLATE_IDS, type TemplateId } from '@domain/layout/templates';
-import { layoutRects, leavesOf, type SlotRole } from '@domain/layout/tree';
+import { layoutRects, leavesOf, makeLeaf, type SlotRole } from '@domain/layout/tree';
 import { GRID } from '@domain/services/PageGeometry';
 import { detectLanguage } from '@domain/services/detectLanguage';
 import { Button } from '../../components/ui/button';
@@ -30,6 +30,8 @@ import {
   useEdition,
   useEditionId,
   useLayoutActions,
+  useLibrary,
+  useLibraryActions,
   useUndoRedo,
 } from '../queries';
 import { ColumnGuides } from './ColumnGuides';
@@ -38,6 +40,7 @@ import { EditableLeaf } from './EditableLeaf';
 import { ElementPalette } from './ElementPalette';
 import { ElementPanel } from './ElementPanel';
 import { LayersPanel } from './LayersPanel';
+import { MasterBar } from './MasterBar';
 import { MastheadPanel } from './MastheadPanel';
 import { MultiPanel } from './MultiPanel';
 import { ObjectPalette } from './ObjectPalette';
@@ -74,7 +77,10 @@ export function LayoutPage() {
   const editionId = useEditionId();
   const { data: edition } = useEdition();
   const { data: articleList = [] } = useArticles();
-  const actions = useLayoutActions();
+  const [editingMasterId, setEditingMasterId] = useState<string | undefined>();
+  const actions = useLayoutActions(editingMasterId);
+  const { data: library = [] } = useLibrary();
+  const libraryActions = useLibraryActions();
   const { ref, scale: fit } = useFitScale(64);
   const pageRef = useRef<HTMLDivElement | null>(null);
   const [pageElement, setPageElement] = useState<HTMLDivElement | null>(null);
@@ -119,8 +125,14 @@ export function LayoutPage() {
     },
   });
 
-  const objs = useObjectSelection({ page, scale, pageElement, actions });
-  const rulerGuides = page?.guides ?? [];
+  // While a master is edited the canvas shows only that master's objects, as an empty page.
+  const masterBeingEdited = edition?.masters?.find((m) => m.id === editingMasterId);
+  const viewPage =
+    page && masterBeingEdited
+      ? { ...page, layout: makeLeaf('master-blank'), objects: masterBeingEdited.objects, guides: [] }
+      : page;
+  const objs = useObjectSelection({ page: viewPage, scale, pageElement, actions });
+  const rulerGuides = viewPage?.guides ?? [];
   const guideDrag = useGuideDrag({
     pageElement,
     scale,
@@ -192,7 +204,34 @@ export function LayoutPage() {
     objs.clear();
   };
 
-  const pageObjects = page.objects ?? [];
+  const view = viewPage ?? page;
+  const pageObjects = view.objects ?? [];
+  const masters = edition.masters ?? [];
+  const pageTemplates = library.filter((item) => item.kind === 'pageTemplate');
+
+  const startEditingMaster = (id: string) => {
+    setEditingMasterId(id);
+    setSelectedLeafId(undefined);
+    objs.clear();
+  };
+  const stopEditingMaster = () => {
+    setEditingMasterId(undefined);
+    objs.clear();
+  };
+  const createMasterFromPage = async () => {
+    const name = window.prompt(t('masters.namePrompt'));
+    if (name === null) return;
+    await actions.createMaster(name, page.number);
+  };
+  const renameMaster = (id: string) => {
+    const name = window.prompt(t('masters.namePrompt'), masters.find((m) => m.id === id)?.name);
+    if (name) void actions.renameMaster(id, name);
+  };
+  const deleteMaster = (id: string) => {
+    if (!window.confirm(t('masters.confirmDelete'))) return;
+    stopEditingMaster();
+    void actions.deleteMaster(id);
+  };
   const addObject = async (tool: Parameters<typeof actions.addObject>[1]) => {
     const id = await actions.addObject(page.number, tool);
     if (id) selectObjects([id]);
@@ -202,6 +241,7 @@ export function LayoutPage() {
     <div className="grid h-full grid-cols-[17rem_1fr_15rem]">
       {/* Left: tools and unplaced stories */}
       <aside className="flex min-h-0 flex-col overflow-y-auto border-r bg-card">
+        {!masterBeingEdited && (
         <div className="flex flex-col gap-2 border-b p-3">
           <Button onClick={() => void actions.autoLayout()} disabled={unplaced.length === 0}>
             <Wand2 /> {t('layout.autoLayout')}
@@ -236,11 +276,55 @@ export function LayoutPage() {
           >
             <Trash2 /> {t('layout.clear')}
           </Button>
+          {pageTemplates.length > 0 && (
+            <select
+              aria-label={t('templates.applyToPage')}
+              className={selectClass}
+              value=""
+              onChange={(e) => {
+                if (e.target.value) void actions.applyPageTemplate(page.number, e.target.value);
+              }}
+            >
+              <option value="">{t('templates.applyToPage')}</option>
+              {pageTemplates.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          )}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => {
+                const name = window.prompt(t('templates.pageName'));
+                if (name !== null) void libraryActions.savePageTemplate(page.number, name);
+              }}
+            >
+              {t('templates.savePage')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => {
+                const name = window.prompt(t('templates.editionName'));
+                if (name !== null) void libraryActions.saveEditionTemplate(name);
+              }}
+            >
+              {t('templates.saveEdition')}
+            </Button>
+          </div>
         </div>
-        <ElementPalette
-          onStartDrag={dnd.start}
-          onAdd={(kind) => void actions.addElement(page.number, { kind })}
-        />
+        )}
+        {!masterBeingEdited && (
+          <ElementPalette
+            onStartDrag={dnd.start}
+            onAdd={(kind) => void actions.addElement(page.number, { kind })}
+          />
+        )}
         <ObjectPalette onAdd={(tool) => void addObject(tool)} />
         <LayersPanel
           objects={pageObjects}
@@ -390,6 +474,17 @@ export function LayoutPage() {
                 : t('layout.fill', { pct: fillPct })}
             </span>
           )}
+          <MasterBar
+            masters={masters}
+            assignedId={page.masterId}
+            editingId={editingMasterId}
+            onAssign={(id) => void actions.assignMaster(page.number, id)}
+            onCreateFromPage={() => void createMasterFromPage()}
+            onEdit={startEditingMaster}
+            onDone={stopEditingMaster}
+            onRename={renameMaster}
+            onDelete={deleteMaster}
+          />
           <label className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
             {t('layout.zoom')}
             <input
@@ -423,12 +518,14 @@ export function LayoutPage() {
             <Ruler axis="y" scale={scale} onStartGuide={(axis, e) => guideDrag.start(axis, null, e)} />
             <ScaledPage scale={scale} innerRef={setPageNode}>
               <PageRenderer
-                page={page}
+                page={view}
                 editionId={editionId}
                 masthead={resolveMasthead(edition.masthead)}
                 articles={articles}
+                masterObjects={masterBeingEdited ? undefined : masterObjectsFor(edition, page)}
                 objectsDraft={objs.draft}
-                renderLeaf={(args) => (
+                renderLeaf={(args) =>
+                  masterBeingEdited ? null : (
                   <EditableLeaf
                     {...args}
                     selected={args.placed.leaf.id === selectedLeafId}
@@ -438,7 +535,8 @@ export function LayoutPage() {
                     onSelect={() => selectLeaf(args.placed.leaf.id)}
                     onStartDrag={dnd.start}
                   />
-                )}
+                  )
+                }
                 overlay={(leaves) => {
                   const target = dnd.drag?.target;
                   const targetRect = target
@@ -447,7 +545,7 @@ export function LayoutPage() {
                   return (
                     <>
                       {guides && <ColumnGuides pageNumber={page.number} />}
-                      {rects.dividers.map((d) => (
+                      {(masterBeingEdited ? [] : rects.dividers).map((d) => (
                         <DividerHandle
                           key={`${d.splitId}-${d.index}`}
                           divider={d}
@@ -643,6 +741,9 @@ export function LayoutPage() {
             <StylePanel
               leaf={selectedLeaf}
               onChange={(style) => void actions.setSlotStyle(page.number, selectedLeaf.id, style)}
+              onApplySaved={(role, style) =>
+                void actions.setSlotStyle(page.number, selectedLeaf.id, style, role)
+              }
             />
           </div>
         ) : (

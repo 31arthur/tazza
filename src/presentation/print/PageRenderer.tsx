@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import type { Article } from '@domain/entities/Article';
 import type { Page } from '@domain/entities/Edition';
 import { layoutRects, type PlacedLeaf } from '@domain/layout/tree';
-import type { ObjectPatch } from '@domain/layout/objects';
+import type { ObjectPatch, PageObject } from '@domain/layout/objects';
 import type { Masthead as MastheadSettings } from '@domain/layout/style';
 import { GRID } from '@domain/services/PageGeometry';
 import { ArticleView } from './ArticleView';
@@ -23,6 +23,8 @@ interface Props {
   articles: ReadonlyMap<string, Article>;
   /** Override how a tile is drawn (the layout canvas adds selection and dragging). */
   renderLeaf?: ((args: RenderLeafArgs) => ReactNode) | undefined;
+  /** Objects of the page's master, drawn behind the stories and the page's own objects. */
+  masterObjects?: readonly PageObject[] | undefined;
   /** Unsaved changes to free objects while they are being dragged or resized. */
   objectsDraft?: ReadonlyMap<string, ObjectPatch> | undefined;
   /** Drawn on top of the page in page coordinates (drop highlights, dividers). */
@@ -52,6 +54,7 @@ export function PageRenderer({
   editionId,
   masthead,
   articles,
+  masterObjects,
   renderLeaf,
   objectsDraft,
   overlay,
@@ -74,6 +77,7 @@ export function PageRenderer({
       ) : (
         <RunningHeader editionId={editionId} settings={masthead} />
       )}
+      {masterObjects && masterObjects.length > 0 && <ObjectsLayer objects={masterObjects} />}
       {leaves.map((placed) => (
         <div key={placed.leaf.id} style={{ display: 'contents' }}>
           {draw({

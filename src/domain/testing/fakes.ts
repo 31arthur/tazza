@@ -5,6 +5,8 @@ import { NotFoundError } from '../errors/DomainError';
 import type { ArticleRepository } from '../ports/repositories/ArticleRepository';
 import type { AssetRepository } from '../ports/repositories/AssetRepository';
 import type { EditionRepository } from '../ports/repositories/EditionRepository';
+import type { LibraryItem } from '../entities/LibraryItem';
+import type { LibraryRepository } from '../ports/repositories/LibraryRepository';
 import type { Clock } from '../ports/services/Clock';
 import type { IdGenerator } from '../ports/services/IdGenerator';
 
@@ -43,6 +45,19 @@ export class InMemoryAssetRepository implements AssetRepository {
   }
   async getBlob(id: string): Promise<Blob | undefined> {
     return this.items.get(id)?.blob;
+  }
+}
+
+export class InMemoryLibraryRepository implements LibraryRepository {
+  readonly items = new Map<string, LibraryItem>();
+  async list(): Promise<LibraryItem[]> {
+    return [...this.items.values()];
+  }
+  async save(item: LibraryItem): Promise<void> {
+    this.items.set(item.id, item);
+  }
+  async delete(id: string): Promise<void> {
+    this.items.delete(id);
   }
 }
 

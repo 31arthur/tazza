@@ -1,9 +1,11 @@
 import { useTranslation } from 'react-i18next';
 import { ACCENT_NAMES, PALETTE, type AccentName, type Masthead } from '@domain/layout/style';
 import { detectLanguage } from '@domain/services/detectLanguage';
+import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
 import { cn } from '../../lib/utils';
+import { useLibraryActions } from '../queries';
 
 interface Props {
   settings: Masthead;
@@ -13,6 +15,7 @@ interface Props {
 /** Edits the masthead of the edition: logo, colour, ears, top strip and print marks. */
 export function MastheadPanel({ settings, onChange }: Props) {
   const { t } = useTranslation();
+  const { saveBrandKit } = useLibraryActions();
 
   const text = (key: 'title' | 'titleEn' | 'tagline' | 'topStrip', label: string) => (
     <label className="flex flex-col gap-1 text-xs text-muted-foreground">
@@ -74,6 +77,14 @@ export function MastheadPanel({ settings, onChange }: Props) {
         />
         {t('masthead.printMarks')}
       </label>
+      <Button
+        variant="outline"
+        size="sm"
+        title={t('masthead.brandKitHint')}
+        onClick={() => void saveBrandKit(settings)}
+      >
+        {t('masthead.saveBrandKit')}
+      </Button>
     </div>
   );
 }

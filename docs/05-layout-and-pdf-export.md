@@ -106,6 +106,19 @@ A page can also hold **free objects**: text boxes, rectangles, ellipses, lines a
 - **Rulers** run along the top and left of the page in millimetres. **Drag from a ruler** to pull out a guide; drag a guide to move it, or drag it off the page to delete it. Objects snap to ruler guides. Guides are saved per page, are never printed, and Clear ruler guides removes them all.
 - All of these are single undo steps.
 
+### Masters
+
+A **master** holds free objects that repeat on every page that uses it (a header rule, a running label, a watermark). Master objects are drawn **behind** the page's tiles and objects, in the editor, preview and print. Pick a master for the page from the Master menu, press **New master** to move the page's current objects onto a new one, or **Edit master** to change it: the canvas then shows only the master's objects, and the change appears on every page that uses it. Deleting a master just stops pages showing it.
+
+### Templates, saved styles and brand kit
+
+The **library** lives outside any edition, so it survives from day to day (Templates screen).
+
+- **Page templates**: a page's tiles, roles, styles, elements, objects and guides without its stories. Applying one pours the page's stories into the new slots and replaces its objects.
+- **Edition templates**: every page, the masters (and which page uses which) and the masthead, without stories. **Use for this edition** rebuilds the current edition; stories stay but become unplaced, ready for Auto layout.
+- **Saved tile styles**: a tile's role and style under a name, applied from its Style panel in one undo step. Object styles are not saved yet.
+- **Brand kit**: the masthead saved as the default for every **new** edition. Custom palettes and fonts per publication are not yet part of it.
+
 ### Templates
 
 Templates are data (`domain/layout/templates.ts`): front page (8, 5 or 3 stories), inner page (6, 4 or 2 stories) and single story. Slot **priority** decides which story goes where: the heaviest stories take priority 1. **Auto layout** picks, for each page, the fullest template whose stories still fit (fill ≤ 100%), adds pages as needed and leaves no empty tiles.

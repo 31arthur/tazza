@@ -9,6 +9,7 @@ const NAV = [
   { to: '/write', key: 'write' },
   { to: '/layout', key: 'layout' },
   { to: '/preview', key: 'preview' },
+  { to: '/templates', key: 'templates' },
 ] as const;
 
 export function AppShell() {
