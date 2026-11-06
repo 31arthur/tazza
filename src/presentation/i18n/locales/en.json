@@ -156,5 +156,21 @@
     "earHint": "First line is the headline",
     "topStrip": "Top strip text",
     "printMarks": "Colour registration marks"
+  },
+  "elements": {
+    "title": "Add element",
+    "kinds": {
+      "photo": "Photo",
+      "text": "Text box",
+      "sidebar": "Sidebar",
+      "label": "Label",
+      "ad": "Ad"
+    },
+    "choosePhoto": "Choose photo",
+    "caption": "Caption",
+    "heading": "Heading",
+    "body": "Text",
+    "labelText": "Label text",
+    "adNote": "Note (advertiser, size)"
   }
 }

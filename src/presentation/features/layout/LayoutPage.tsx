@@ -16,6 +16,8 @@ import { ScaledPage } from '../../print/ScaledPage';
 import { useArticles, useEdition, useEditionId, useLayoutActions } from '../queries';
 import { DividerHandle } from './DividerHandle';
 import { EditableLeaf } from './EditableLeaf';
+import { ElementPalette } from './ElementPalette';
+import { ElementPanel } from './ElementPanel';
 import { MastheadPanel } from './MastheadPanel';
 import { StylePanel } from './StylePanel';
 import { useLayoutDnd, type DragSource, type DropTarget } from './useLayoutDnd';
@@ -66,10 +68,18 @@ export function LayoutPage() {
     leaves: rects.leaves,
     onDrop: (source: DragSource, target: DropTarget) => {
       if (!page) return;
+      if (source.elementKind) {
+        void actions.addElement(page.number, {
+          kind: source.elementKind,
+          targetLeafId: target.leafId,
+          zone: target.zone,
+        });
+        return;
+      }
       void actions.dropArticle(page.number, {
         targetLeafId: target.leafId,
         zone: target.zone,
-        articleId: source.articleId,
+        ...(source.articleId && { articleId: source.articleId }),
         ...(source.fromLeafId && { fromLeafId: source.fromLeafId }),
       });
     },
@@ -129,6 +139,10 @@ export function LayoutPage() {
             <Trash2 /> {t('layout.clear')}
           </Button>
         </div>
+        <ElementPalette
+          onStartDrag={dnd.start}
+          onAdd={(kind) => void actions.addElement(page.number, { kind })}
+        />
         <h2 className="px-3 pt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {t('layout.unplaced')} ({unplaced.length})
         </h2>
@@ -315,7 +329,11 @@ export function LayoutPage() {
               lang={detectLanguage(selectedArticle?.headline ?? '')}
               className="font-semibold"
             >
-              {selectedArticle ? selectedArticle.headline.trim() || t('write.untitled') : t('layout.emptySlot')}
+              {selectedArticle
+                ? selectedArticle.headline.trim() || t('write.untitled')
+                : selectedLeaf.element
+                  ? t(`elements.kinds.${selectedLeaf.element.type === 'text' ? 'text' : selectedLeaf.element.type}`)
+                  : t('layout.emptySlot')}
             </div>
             <label className="flex flex-col gap-1 text-xs text-muted-foreground">
               {t('layout.role')}
@@ -356,7 +374,7 @@ export function LayoutPage() {
                 </select>
               </label>
             )}
-            {selectedArticle && (
+            {(selectedArticle || selectedLeaf.element) && (
               <Button
                 variant="outline"
                 onClick={() => {
@@ -375,6 +393,15 @@ export function LayoutPage() {
             >
               {t('layout.removeSlot')}
             </Button>
+            {selectedLeaf.element && (
+              <ElementPanel
+                tileId={selectedLeaf.id}
+                element={selectedLeaf.element}
+                onChange={(element) =>
+                  void actions.updateElement(page.number, selectedLeaf.id, element)
+                }
+              />
+            )}
             <StylePanel
               leaf={selectedLeaf}
               onChange={(style) => void actions.setSlotStyle(page.number, selectedLeaf.id, style)}

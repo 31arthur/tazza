@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { Edition } from '@domain/entities/Edition';
+import type { Element, ElementKind } from '@domain/layout/element';
 import type { TemplateId } from '@domain/layout/templates';
 import type { LeafStyle, Masthead } from '@domain/layout/style';
 import type { SlotRole } from '@domain/layout/tree';
@@ -42,7 +43,7 @@ const messageOf = (error: unknown): string =>
 export interface DropRequest {
   targetLeafId: string;
   zone: DropZone;
-  articleId: string;
+  articleId?: string;
   fromLeafId?: string;
 }
 
@@ -78,6 +79,12 @@ export function useLayoutActions() {
       apply(() => uc.placeArticle.execute({ editionId, pageNumber, articleId })),
     dropArticle: (pageNumber: number, drop: DropRequest) =>
       apply(() => uc.dropArticle.execute({ editionId, pageNumber, ...drop })),
+    addElement: (
+      pageNumber: number,
+      request: { kind: ElementKind; targetLeafId?: string; zone?: DropZone },
+    ) => apply(() => uc.addElement.execute({ editionId, pageNumber, ...request })),
+    updateElement: (pageNumber: number, leafId: string, element: Element) =>
+      apply(() => uc.updateElement.execute({ editionId, pageNumber, leafId, element })),
     autoFitPage: (pageNumber: number) =>
       apply(() => uc.autoFitPage.execute({ editionId, pageNumber })),
     clearSlot: (pageNumber: number, leafId: string) =>

@@ -1,4 +1,5 @@
 import { bodyParagraphs, type Article } from '../entities/Article';
+import type { Element } from '../layout/element';
 import { resolveStyle } from '../layout/style';
 import type { Leaf, SlotRole } from '../layout/tree';
 import { detectLanguage } from './detectLanguage';
@@ -72,8 +73,34 @@ export const heroMinForLeaf = (article: Article, cols: number, leaf: Leaf): numb
     ? Math.max(heroMinMm(cols), estimateHeadlineMm(article, cols, leaf) + 14)
     : heroMinMm(cols);
 
-/** Estimated height in mm of a story set across `cols` columns in a tile. */
+/** Estimated height in mm of a non-story element set across `cols` columns. */
+export const estimateElementMm = (element: Element, cols: number, leaf: Leaf): number => {
+  const width = spanWidthMm(cols);
+  switch (element.type) {
+    case 'photo':
+      return element.assetId
+        ? width * 0.62 + (element.caption.trim() === '' ? 0 : CAPTION_MM) + 2
+        : 45;
+    case 'label':
+      return 9;
+    case 'ad':
+      return 50;
+    case 'text': {
+      const head = textHeightMm(element.heading, width, headlinePt(cols, leaf.role), true);
+      const body = element.body
+        .split('\n')
+        .reduce(
+          (sum, p) => sum + textHeightMm(p, COLUMN_WIDTH_MM, bodyPt(leaf.role), false) + 1.2,
+          0,
+        );
+      return VERTICAL_PAD_MM + head + (body / cols) * 1.2 + 8;
+    }
+  }
+};
+
+/** Estimated height in mm of a story (or element) set across `cols` columns in a tile. */
 export const estimateStoryMm = (article: Article | undefined, cols: number, leaf: Leaf): number => {
+  if (leaf.element) return estimateElementMm(leaf.element, cols, leaf);
   if (!article) return EMPTY_SLOT_MM;
   const style = resolveStyle(leaf);
   const width = spanWidthMm(cols);

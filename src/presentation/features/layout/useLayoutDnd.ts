@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent, type RefObject } from 'react';
+import type { ElementKind } from '@domain/layout/element';
 import type { PlacedLeaf } from '@domain/layout/tree';
 import type { DropZone } from '@domain/usecases/layout/DropArticle';
 import { PX_PER_MM } from '../../lib/units';
 
 export interface DragSource {
-  articleId: string;
+  /** The story being dragged (absent for element tiles and new elements). */
+  articleId?: string;
+  /** Set when dragging a new element out of the palette. */
+  elementKind?: ElementKind;
   /** Set when an already-placed tile is being moved. */
   fromLeafId?: string;
   label: string;
@@ -81,6 +85,7 @@ export function useLayoutDnd({ pageRef, scale, leaves, onDrop }: Options) {
 
       const onMove = (e: globalThis.PointerEvent) => {
         if (!active && Math.hypot(e.clientX - startX, e.clientY - startY) < THRESHOLD_PX) return;
+        if (!active) document.body.style.userSelect = 'none'; // no text selection while dragging
         active = true;
         setDrag({ source, x: e.clientX, y: e.clientY, target: hit(e.clientX, e.clientY, source) });
       };
@@ -88,6 +93,7 @@ export function useLayoutDnd({ pageRef, scale, leaves, onDrop }: Options) {
         window.removeEventListener('pointermove', onMove);
         window.removeEventListener('pointerup', onUp);
         window.removeEventListener('pointercancel', onCancel);
+        document.body.style.userSelect = '';
         if (!active) return;
         setDrag(null);
         const target = commit ? hit(e.clientX, e.clientY, source) : null;
