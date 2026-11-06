@@ -5,10 +5,10 @@ Pure TypeScript. No framework imports.
 ## Entities
 
 ```
-Edition 1 ──── * Page 1 ──── * Block ──── 0..1 Article
-   │                                          │
-   └── * Article (belongs to edition) ────────┘
-                         └── * AssetRef ──▶ Asset
+Edition 1 ──── * Page 1 ──── 1 LayoutNode (tree of Splits) ──── * Leaf ──── 0..1 Article
+   │                                                                          │
+   └── * Article (belongs to edition) ────────────────────────────────────────┘
+                         └── image nodes in body ──▶ Asset
 ```
 
 ### Edition
@@ -25,22 +25,18 @@ Edition 1 ──── * Page 1 ──── * Block ──── 0..1 Article
 | Field | Type | Notes |
 |---|---|---|
 | number | number | 1-based |
-| size | `PageSize` | A3 default: 297 × 420 mm |
-| grid | `PageGrid` | columns (6), gutter, margins in mm |
-| template | `TemplateId` | |
-| blocks | `Block[]` | non-overlapping |
+| layout | `LayoutNode` | tiling of the page: `Split` (row of columns / stack of heights) or `Leaf` |
 
-### Block
-A rectangle on the grid that holds one article (or an ad/placeholder later).
+Page size and grid are constants in `domain/services/PageGeometry.ts` (A3, 6 columns, 4 mm gutter, mm units).
 
+### Leaf (a tile)
 | Field | Notes |
 |---|---|
-| placement | `GridPlacement { col, colSpan, row, rowSpan }` in grid modules |
-| articleId | optional |
-| role | `Lead`, `Secondary`, `Brief`, `Photo`, `Ad` |
-| flowsTo | optional next `BlockId` for continued text (Phase 2) |
+| role | `banner`, `lead`, `story`, `box`, `brief` (styling) |
+| priority | template slot order: 1 gets the most important story |
+| articleId | optional (empty slot) |
 
-Invariants: blocks stay inside the grid; blocks never overlap; one article appears in at most one primary block per edition.
+Invariants: tiles always cover the page; row sizes are integer column counts that sum to the row's width; a story sits in at most one tile of an edition. See [05-layout-and-pdf-export.md](05-layout-and-pdf-export.md) for the fit engine and drag-and-drop rules.
 
 ### Article
 | Field | Type | Notes |
@@ -95,7 +91,7 @@ One class per file. Input and output are plain data objects.
 |---|---|
 | Edition | `CreateEdition`, `OpenEdition`, `ListEditions`, `ChangeEditionStatus`, `DuplicateEditionStructure` |
 | Article | `CreateArticle`, `GetArticle`, `UpdateArticle`, `DeleteArticle`, `ListArticles`, `ChangeArticleStatus`, `AttachAsset` |
-| Layout | `AddPage`, `RemovePage`, `ApplyTemplate`, `PlaceArticleInBlock`, `ResizeBlock`, `ClearBlock`, `AutoPlaceArticles` |
+| Layout | `AddPage`, `RemovePage`, `ApplyTemplate`, `DropArticle`, `PlaceArticle`, `ClearSlot`, `RemoveSlot`, `SetSlotRole`, `ResizeSplit`, `AutoFitPage`, `AutoLayout`, `ClearLayout` |
 | Fit | `EstimateCopyfit` (uses `CopyfitEstimator`) |
 | Export | `ExportEditionPdf`, `ExportEditionBundle`, `ImportEditionBundle` |
 

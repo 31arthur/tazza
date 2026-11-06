@@ -1,13 +1,14 @@
 import type { ReactNode } from 'react';
 import type { Article } from '@domain/entities/Article';
-import type { Block, Page } from '@domain/entities/Edition';
-import { GRID, placementRectMm, type RectMm } from '@domain/services/PageGeometry';
-import { Folio, Masthead, RunningHeader } from './PageChrome';
+import type { Page } from '@domain/entities/Edition';
+import { layoutRects, type PlacedLeaf } from '@domain/layout/tree';
+import { GRID } from '@domain/services/PageGeometry';
 import { ArticleView } from './ArticleView';
+import { LeafFrame } from './LeafFrame';
+import { Folio, Masthead, RunningHeader } from './PageChrome';
 
-export interface RenderBlockArgs {
-  block: Block;
-  rect: RectMm;
+export interface RenderLeafArgs {
+  placed: PlacedLeaf;
   article: Article | undefined;
 }
 
@@ -15,27 +16,17 @@ interface Props {
   page: Page;
   editionId: string;
   articles: ReadonlyMap<string, Article>;
-  /** Override how a block is drawn (the layout canvas adds drag handles). */
-  renderBlock?: ((args: RenderBlockArgs) => ReactNode) | undefined;
+  /** Override how a tile is drawn (the layout canvas adds selection and dragging). */
+  renderLeaf?: ((args: RenderLeafArgs) => ReactNode) | undefined;
+  /** Drawn on top of the page in page coordinates (drop highlights, dividers). */
+  overlay?: ((leaves: readonly PlacedLeaf[]) => ReactNode) | undefined;
 }
 
-export const blockBoxStyle = (rect: RectMm) =>
-  ({
-    position: 'absolute',
-    left: `${rect.x}mm`,
-    top: `${rect.y}mm`,
-    width: `${rect.w}mm`,
-    height: `${rect.h}mm`,
-    boxSizing: 'border-box',
-  }) as const;
-
-export function PrintBlock({ block, rect, article }: RenderBlockArgs) {
+export function PrintLeaf({ placed, article }: RenderLeafArgs) {
   return (
-    <div
-      style={{ ...blockBoxStyle(rect), borderBottom: '0.2mm solid #888', paddingBottom: '1.5mm' }}
-    >
-      {article && <ArticleView article={article} colSpan={block.placement.colSpan} />}
-    </div>
+    <LeafFrame placed={placed}>
+      {article && <ArticleView article={article} cols={placed.cols} role={placed.leaf.role} />}
+    </LeafFrame>
   );
 }
 
@@ -43,7 +34,9 @@ export function PrintBlock({ block, rect, article }: RenderBlockArgs) {
  * Draws one A3 page at its real size (297 x 420 mm). The layout canvas, the preview and the
  * print output all use this component, so what you see is what is printed.
  */
-export function PageRenderer({ page, editionId, articles, renderBlock }: Props) {
+export function PageRenderer({ page, editionId, articles, renderLeaf, overlay }: Props) {
+  const { leaves } = layoutRects(page.layout, page.number);
+  const draw = renderLeaf ?? PrintLeaf;
   return (
     <div
       className="paper"
@@ -60,18 +53,15 @@ export function PageRenderer({ page, editionId, articles, renderBlock }: Props) 
       ) : (
         <RunningHeader editionId={editionId} />
       )}
-      {page.blocks.map((block) => {
-        const args: RenderBlockArgs = {
-          block,
-          rect: placementRectMm(block.placement, page.number),
-          article: articles.get(block.articleId),
-        };
-        return (
-          <div key={block.id} style={{ display: 'contents' }}>
-            {(renderBlock ?? PrintBlock)(args)}
-          </div>
-        );
-      })}
+      {leaves.map((placed) => (
+        <div key={placed.leaf.id} style={{ display: 'contents' }}>
+          {draw({
+            placed,
+            article: placed.leaf.articleId ? articles.get(placed.leaf.articleId) : undefined,
+          })}
+        </div>
+      ))}
+      {overlay?.(leaves)}
       <Folio pageNumber={page.number} />
     </div>
   );

@@ -57,6 +57,7 @@
   },
   "layout": {
     "autoLayout": "Auto layout",
+    "autoFit": "Fit page",
     "clear": "Clear layout",
     "confirmClear": "Remove all stories from the pages?",
     "unplaced": "Unplaced stories",
@@ -66,14 +67,34 @@
     "removePage": "Remove page",
     "page": "Page {{n}}",
     "zoom": "Zoom",
-    "column": "Column",
-    "columns": "Columns",
-    "row": "Row",
-    "rows": "Rows",
+    "template": "Page template…",
+    "templates": {
+      "front": "Front page",
+      "inner-6": "Inner page · 6 stories",
+      "inner-4": "Inner page · 4 stories",
+      "inner-2": "Inner page · 2 stories",
+      "blank": "Single story",
+      "front-5": "Front page · 5 stories",
+      "front-3": "Front page · 3 stories"
+    },
+    "role": "Style",
+    "roles": {
+      "banner": "Banner",
+      "lead": "Lead",
+      "story": "Story",
+      "box": "Boxed",
+      "brief": "Brief"
+    },
+    "clearSlot": "Take story out",
+    "removeSlot": "Delete this space",
     "moveToPage": "Move to page",
-    "remove": "Remove from page",
-    "overflow": "Text overflows - enlarge",
-    "hint": "Select a story to edit its size. Drag to move; drag the blue corner to resize."
+    "overflow": "Text does not fit - give it more room",
+    "emptySlot": "Drop a story here",
+    "hint": "Drag a story onto another to swap, or onto its edge to place it beside. Drag the thin lines between stories to resize.",
+    "dragHint": "Drag a story onto the page. Drop in the middle to fill or swap; drop on an edge to place it beside.",
+    "fill": "Page {{pct}}% full",
+    "overfull": "Overfull {{pct}}%",
+    "fillHint": "How much of the page the stories need"
   },
   "preview": {
     "print": "Print / Save as PDF",

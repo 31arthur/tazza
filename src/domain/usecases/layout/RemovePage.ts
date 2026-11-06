@@ -2,7 +2,7 @@ import type { Edition } from '../../entities/Edition';
 import { LayoutError, NotFoundError } from '../../errors/DomainError';
 import type { EditionRepository } from '../../ports/repositories/EditionRepository';
 
-/** Removes a page; its articles become unplaced again. */
+/** Removes a page; its stories become unplaced again. */
 export class RemovePage {
   constructor(private readonly editions: EditionRepository) {}
 

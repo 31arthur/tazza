@@ -8,12 +8,17 @@ import type { LoadSampleStories } from './article/LoadSampleStories';
 import type { UpdateArticle } from './article/UpdateArticle';
 import type { GetOrCreateEdition } from './edition/GetOrCreateEdition';
 import type { AddPage } from './layout/AddPage';
+import type { ApplyTemplate } from './layout/ApplyTemplate';
+import type { AutoFitPage } from './layout/AutoFitPage';
 import type { AutoLayout } from './layout/AutoLayout';
 import type { ClearLayout } from './layout/ClearLayout';
+import type { ClearSlot } from './layout/ClearSlot';
+import type { DropArticle } from './layout/DropArticle';
 import type { PlaceArticle } from './layout/PlaceArticle';
-import type { RemoveBlock } from './layout/RemoveBlock';
 import type { RemovePage } from './layout/RemovePage';
-import type { UpdateBlock } from './layout/UpdateBlock';
+import type { RemoveSlot } from './layout/RemoveSlot';
+import type { ResizeSplit } from './layout/ResizeSplit';
+import type { SetSlotRole } from './layout/SetSlotRole';
 
 /** Everything the presentation layer may call. Built in the composition root. */
 export interface UseCases {
@@ -28,9 +33,14 @@ export interface UseCases {
   getAssetBlob: GetAssetBlob;
   addPage: AddPage;
   removePage: RemovePage;
+  applyTemplate: ApplyTemplate;
+  dropArticle: DropArticle;
   placeArticle: PlaceArticle;
-  updateBlock: UpdateBlock;
-  removeBlock: RemoveBlock;
+  clearSlot: ClearSlot;
+  removeSlot: RemoveSlot;
+  setSlotRole: SetSlotRole;
+  resizeSplit: ResizeSplit;
+  autoFitPage: AutoFitPage;
   clearLayout: ClearLayout;
   autoLayout: AutoLayout;
 }

@@ -15,12 +15,17 @@ import { SaveAsset } from '@domain/usecases/asset/SaveAsset';
 import { GetOrCreateEdition } from '@domain/usecases/edition/GetOrCreateEdition';
 import type { UseCases } from '@domain/usecases';
 import { AddPage } from '@domain/usecases/layout/AddPage';
+import { ApplyTemplate } from '@domain/usecases/layout/ApplyTemplate';
+import { AutoFitPage } from '@domain/usecases/layout/AutoFitPage';
 import { AutoLayout } from '@domain/usecases/layout/AutoLayout';
 import { ClearLayout } from '@domain/usecases/layout/ClearLayout';
+import { ClearSlot } from '@domain/usecases/layout/ClearSlot';
+import { DropArticle } from '@domain/usecases/layout/DropArticle';
 import { PlaceArticle } from '@domain/usecases/layout/PlaceArticle';
-import { RemoveBlock } from '@domain/usecases/layout/RemoveBlock';
 import { RemovePage } from '@domain/usecases/layout/RemovePage';
-import { UpdateBlock } from '@domain/usecases/layout/UpdateBlock';
+import { RemoveSlot } from '@domain/usecases/layout/RemoveSlot';
+import { ResizeSplit } from '@domain/usecases/layout/ResizeSplit';
+import { SetSlotRole } from '@domain/usecases/layout/SetSlotRole';
 
 export interface Container {
   useCases: UseCases;
@@ -38,7 +43,7 @@ export const createContainer = (): Container => {
   const ids = new UuidGenerator();
 
   const useCases: UseCases = {
-    getOrCreateEdition: new GetOrCreateEdition(editions),
+    getOrCreateEdition: new GetOrCreateEdition(editions, ids),
     listArticles: new ListArticles(articles),
     createArticle: new CreateArticle(articles, ids, clock),
     getArticle: new GetArticle(articles),
@@ -47,12 +52,17 @@ export const createContainer = (): Container => {
     loadSampleStories: new LoadSampleStories(articles, assets, ids, clock),
     saveAsset: new SaveAsset(assets, ids),
     getAssetBlob: new GetAssetBlob(assets),
-    addPage: new AddPage(editions),
+    addPage: new AddPage(editions, ids),
     removePage: new RemovePage(editions),
+    applyTemplate: new ApplyTemplate(articles, editions, ids),
+    dropArticle: new DropArticle(articles, editions, ids),
     placeArticle: new PlaceArticle(articles, editions, ids),
-    updateBlock: new UpdateBlock(editions),
-    removeBlock: new RemoveBlock(editions),
-    clearLayout: new ClearLayout(editions),
+    clearSlot: new ClearSlot(articles, editions),
+    removeSlot: new RemoveSlot(articles, editions, ids),
+    setSlotRole: new SetSlotRole(articles, editions),
+    resizeSplit: new ResizeSplit(articles, editions),
+    autoFitPage: new AutoFitPage(articles, editions),
+    clearLayout: new ClearLayout(editions, ids),
     autoLayout: new AutoLayout(articles, editions, ids),
   };
 

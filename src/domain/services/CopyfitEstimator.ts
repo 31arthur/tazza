@@ -1,23 +1,42 @@
 import { bodyParagraphs, type Article } from '../entities/Article';
+import type { SlotRole } from '../layout/tree';
 import { detectLanguage } from './detectLanguage';
-import { COLUMN_WIDTH_MM, GRID, gridRows, spanWidthMm } from './PageGeometry';
+import { COLUMN_WIDTH_MM, GRID, spanWidthMm } from './PageGeometry';
 
 const PT_MM = 25.4 / 72;
-export const BODY_PT = 9.5;
 
-/** Headline point size by the number of columns a story spans. */
-export const headlinePt = (colSpan: number): number =>
-  ({ 1: 13, 2: 17, 3: 22, 4: 28, 5: 32, 6: 38 })[colSpan] ?? 17;
+export const bodyPt = (role: SlotRole): number => (role === 'brief' ? 8.5 : 9.5);
 
-const IMAGE_ASPECT = 0.66;
+/** Headline point size from the number of columns a story spans and its role. */
+export const headlinePt = (cols: number, role: SlotRole): number => {
+  const base = ({ 1: 13, 2: 17, 3: 22, 4: 28, 5: 32, 6: 38 } as Record<number, number>)[cols] ?? 17;
+  switch (role) {
+    case 'banner':
+      return Math.min(54, base + 10);
+    case 'lead':
+      return base + 2;
+    case 'box':
+      return Math.max(12, base - 2);
+    case 'brief':
+      return Math.min(base, 13);
+    case 'story':
+      return base;
+  }
+};
+
+export const hasHero = (article: Article | undefined): boolean =>
+  article?.body.some((n) => n.type === 'image') ?? false;
+
+/** Smallest height the lead photo may shrink to. The photo grows to absorb spare height. */
+export const heroMinMm = (cols: number): number =>
+  Math.min(55, Math.max(28, spanWidthMm(cols) * 0.3));
+
+const CAPTION_MM = 7;
+export const VERTICAL_PAD_MM = 3.5;
+const EMPTY_SLOT_MM = 35;
 
 /** Rough height in mm of a run of text set at `ptSize` across `widthMm`. */
-const textHeightMm = (
-  text: string,
-  widthMm: number,
-  ptSize: number,
-  headline: boolean,
-): number => {
+const textHeightMm = (text: string, widthMm: number, ptSize: number, headline: boolean): number => {
   if (text.trim() === '') return 0;
   const te = detectLanguage(text) === 'te';
   const sizeMm = ptSize * PT_MM;
@@ -28,46 +47,33 @@ const textHeightMm = (
   return Math.ceil(text.length / charsPerLine) * lineH;
 };
 
-/** Estimated block height in grid rows for an article set across `colSpan` columns. */
-export const estimateRows = (article: Article, colSpan: number): number => {
-  const width = spanWidthMm(colSpan);
-  const head = textHeightMm(article.headline, width, headlinePt(colSpan), true);
+/** Estimated height in mm of a story set across `cols` columns. */
+export const estimateStoryMm = (
+  article: Article | undefined,
+  cols: number,
+  role: SlotRole,
+): number => {
+  if (!article) return EMPTY_SLOT_MM;
+  const width = spanWidthMm(cols);
+  const head = textHeightMm(article.headline, width, headlinePt(cols, role), true);
   const sub = textHeightMm(article.subHeadline, width, 11, false);
+  const byline = article.byline.trim() === '' ? 0 : 5;
+
+  const images = article.body.filter((n) => n.type === 'image').length;
+  const hero = images > 0 ? heroMinMm(cols) + CAPTION_MM : 0;
+  const inlineImages = Math.max(0, images - 1) * (COLUMN_WIDTH_MM * 0.66 + 12);
 
   const bodyMm = bodyParagraphs(article.body).reduce(
-    (sum, p) => sum + textHeightMm(p, COLUMN_WIDTH_MM, BODY_PT, false) + 1.2,
+    (sum, p) => sum + textHeightMm(p, COLUMN_WIDTH_MM, bodyPt(role), false) + 1.2,
     0,
   );
-  const images = article.body.filter((n) => n.type === 'image').length;
-  const imageMm = images * (COLUMN_WIDTH_MM * IMAGE_ASPECT + 12);
-
   // Columns never balance perfectly and images cannot split, so keep a safety margin.
-  const flowMm = ((bodyMm + imageMm) / colSpan) * 1.2 + 6;
-  const totalMm = head + sub + 8 + flowMm;
-  return Math.max(3, Math.ceil(totalMm / GRID.rowMm));
+  const flow = ((bodyMm + inlineImages) / cols) * 1.2 + 6;
+  return VERTICAL_PAD_MM + head + sub + byline + hero + flow;
 };
 
-export const suggestColSpan = (article: Article): number => {
-  const chars = bodyParagraphs(article.body).join('').length;
-  if (chars <= 400) return 2;
-  if (chars <= 1000) return 3;
-  if (chars <= 2000) return 4;
-  return 6;
-};
+/** How much a story needs: used to rank stories for the biggest slots. */
+export const storyWeight = (article: Article): number =>
+  bodyParagraphs(article.body).join('').length + (hasHero(article) ? 600 : 0);
 
-export interface BlockSize {
-  readonly colSpan: number;
-  readonly rowSpan: number;
-}
-
-/** Suggested block size; widens the story until it fits on one page, else clamps. */
-export const estimateBlockSize = (article: Article): BlockSize => {
-  const maxRows = gridRows(2);
-  let colSpan = suggestColSpan(article);
-  let rowSpan = estimateRows(article, colSpan);
-  while (rowSpan > maxRows && colSpan < GRID.columns) {
-    colSpan += 1;
-    rowSpan = estimateRows(article, colSpan);
-  }
-  return { colSpan, rowSpan: Math.min(rowSpan, maxRows) };
-};
+export const MAX_COLS = GRID.columns;

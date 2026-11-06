@@ -17,35 +17,55 @@ All geometry is defined in **millimetres** as `PageGrid` in the domain and expos
 
 ## Layout model
 
+A page is a **tiling**, like a newspaper paste-up: the live area is split into rows and columns until every rectangle (a *tile*) holds one story.
+
 ```
-Page
- └─ Block { col, colSpan, row, rowSpan, role, articleId? }
+Page.layout : LayoutNode
+  Leaf  { role, priority?, articleId? }                 one story
+  Split { direction: row | column, children, sizes }    row: side by side, sizes = column counts (sum 6)
+                                                        column: stacked, sizes = relative heights
 ```
 
-- Blocks snap to the 6-column grid and to 10 mm vertical modules.
-- Blocks cannot overlap or leave the live area (`PlaceArticleInBlock`, `ResizeBlock` enforce this).
-- Inside a block, article content is composed: headline → sub-headline → byline → image(s) → body.
-- Body text flows into `colSpan` CSS columns: `column-count: N; column-gap: 4mm; column-fill: auto` with the block height fixed, so text fills column 1 then column 2.
+- The tiles always cover the page, so there are no gaps to manage and no overlaps to forbid. Moving a story re-divides space; everything else re-fits around it.
+- Row widths snap to the 6-column grid, so text always lines up with the columns.
+- Inside a tile a story is composed as: headline → sub-headline → byline → **hero photo** (first image; grows or shrinks to use spare height, capped at 3:2) → body in `cols` balanced CSS columns. Further images flow inside the columns.
+
+### Fit engine (`domain/layout/fit.ts`)
+
+- `needMm(node, cols)` estimates the height a story needs at a given width (`CopyfitEstimator`).
+- Side-by-side stories share the columns so the **tallest is as short as possible** (the neediest story keeps getting the next column).
+- Stacked stories get their needed height; spare height goes to stories with photos, else proportionally.
+- `pageFill` = needed ÷ available height. Over 100% the page is shown as **Overfull** and tiles show a red "does not fit" bar; nothing is silently cut.
+
+### Moving stories (drag and drop)
+
+| Drop on a tile's… | Result |
+|---|---|
+| middle | fill an empty tile, or swap stories |
+| left/right edge | place the story beside it (splits the row, taking a column) |
+| top/bottom edge | place the story above/below it |
+
+After every change the page is re-fitted. Thin dividers between tiles can be dragged to resize by hand (columns snap; heights are free). A story lives in exactly one tile.
 
 ### Roles
 
-| Role | Typical size | Style |
-|---|---|---|
-| Lead | 4–6 cols × large | Large headline, photo, long body |
-| Secondary | 2–3 cols | Medium headline |
-| Brief | 1–2 cols | Small headline, short text |
-| Photo | any | Image and caption only |
-| Ad | any | Placeholder box for externally supplied artwork |
+| Role | Style |
+|---|---|
+| Banner | Very large headline, full width, wide photo |
+| Lead | Large headline with photo |
+| Story | Standard |
+| Boxed | Tinted panel with border |
+| Brief | Small headline and text |
 
 ### Templates
 
-Templates are data (JSON) in the domain: a list of block placements with roles. Applying a template creates empty blocks. Built-in set: Front page, Inner 2-up, Editorial, Sports, Briefs. Users can save the current page as a template.
+Templates are data (`domain/layout/templates.ts`): front page (8, 5 or 3 stories), inner page (6, 4 or 2 stories) and single story. Slot **priority** decides which story goes where: the heaviest stories take priority 1. **Auto layout** picks, for each page, the fullest template whose stories still fit (fill ≤ 100%), adds pages as needed and leaves no empty tiles.
 
 ## Copyfitting
 
-**Estimate (domain, instant):** `CopyfitEstimator` uses characters-per-line per language × font size × column width to predict needed lines and compare to the block's capacity. Shows green / amber / red badges in the article list and on blocks.
+**Estimate (domain, instant):** `CopyfitEstimator` uses characters-per-line per language (measured from real renders: about 28 per column for Telugu and 24 for English at 9.5 pt) × font size × column width to predict the height a story needs. It drives the fit engine and the page-fill badge.
 
-**Measure (presentation, exact):** after render, compare `scrollHeight` of the block's content with its fixed height. If larger → mark overflow, show a red edge and "overflow by N lines". Phase 2 offers "Fit" helpers: reduce headline size one step, tighten leading to a limit, or flow into a linked block (`flowsTo`).
+**Measure (presentation, exact):** after render, compare `scrollHeight` of the tile with its `clientHeight`. If larger → show a red "does not fit" bar. Later: reduce headline size one step, tighten leading, or continue the story in another tile.
 
 Rule: the app warns but never silently truncates content.
 

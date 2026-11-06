@@ -19,6 +19,8 @@ const base = {
   width: `${GRID.pageWidthMm - 2 * GRID.marginXMm}mm`,
 } as const;
 
+const BLUE = '#1d4ed8';
+
 /** Page 1 masthead: publication name and the edition date in Telugu and English. */
 export function Masthead({ editionId }: { editionId: string }) {
   const date = parseIsoDate(editionId);
@@ -34,11 +36,23 @@ export function Masthead({ editionId }: { editionId: string }) {
         justifyContent: 'space-between',
       }}
     >
-      <div style={{ textAlign: 'center' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          fontSize: '7.5pt',
+          fontFamily: 'var(--font-ui)',
+          color: '#444',
+        }}
+      >
+        <span lang="te">ప్రతి రోజు తాజా వార్తలు</span>
+        <span lang="en">Fresh news, every day</span>
+      </div>
+      <div style={{ textAlign: 'center', lineHeight: 1 }}>
         <div
           lang="te"
           className="headline"
-          style={{ fontSize: '40pt', lineHeight: 1.25, letterSpacing: 0 }}
+          style={{ fontSize: '46pt', lineHeight: 1.2, letterSpacing: 0, color: BLUE }}
         >
           తాజా
         </div>
@@ -46,10 +60,10 @@ export function Masthead({ editionId }: { editionId: string }) {
           lang="en"
           style={{
             fontFamily: 'var(--font-head)',
-            fontSize: '11pt',
+            fontSize: '10pt',
             fontWeight: 700,
-            letterSpacing: '0.5em',
-            marginTop: '-1mm',
+            letterSpacing: '0.6em',
+            color: '#dc2626',
           }}
         >
           TAZZA
@@ -88,7 +102,9 @@ export function RunningHeader({ editionId }: { editionId: string }) {
         fontFamily: 'var(--font-ui)',
       }}
     >
-      <strong lang="te">తాజా · TAZZA</strong>
+      <strong lang="te" style={{ color: BLUE }}>
+        తాజా · TAZZA
+      </strong>
       <span lang="en">{fmt('en-IN', date)}</span>
     </header>
   );

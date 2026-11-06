@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
 import { inlineText, type Article, type BodyNode } from '@domain/entities/Article';
-import { BODY_PT, headlinePt } from '@domain/services/CopyfitEstimator';
+import type { SlotRole } from '@domain/layout/tree';
+import { bodyPt, headlinePt, heroMinMm } from '@domain/services/CopyfitEstimator';
 import { detectLanguage } from '@domain/services/detectLanguage';
+import { spanWidthMm } from '@domain/services/PageGeometry';
 import { AssetImage } from './AssetImage';
 import { Inlines } from './Inlines';
 
 interface Props {
   article: Article;
-  colSpan: number;
-  /** When given, called whenever the body text starts or stops overflowing its block. */
+  /** Number of page columns the story spans. */
+  cols: number;
+  role: SlotRole;
+  /** When given, called whenever the story starts or stops overflowing its tile. */
   onOverflowChange?: ((overflowing: boolean) => void) | undefined;
 }
 
@@ -48,8 +52,8 @@ function Node({ node, index }: { node: BodyNode; index: number }): ReactNode {
           style={{
             margin: '2mm 0',
             padding: '1.5mm 0',
-            borderTop: '0.4mm solid #111',
-            borderBottom: '0.4mm solid #111',
+            borderTop: '0.4mm solid #1d4ed8',
+            borderBottom: '0.4mm solid #1d4ed8',
             fontSize: '12pt',
             fontStyle: 'italic',
             fontWeight: 600,
@@ -64,9 +68,11 @@ function Node({ node, index }: { node: BodyNode; index: number }): ReactNode {
     case 'list': {
       const Tag = node.ordered ? 'ol' : 'ul';
       return (
-        <Tag style={{ margin: '1mm 0', paddingLeft: '5mm', listStyle: node.ordered ? 'decimal' : 'disc' }}>
+        <Tag
+          style={{ margin: '1mm 0', paddingLeft: '4mm', listStyle: node.ordered ? 'decimal' : 'disc' }}
+        >
           {node.items.map((item, i) => (
-            <li key={i} lang={detectLanguage(inlineText(item))}>
+            <li key={i} lang={detectLanguage(inlineText(item))} style={{ marginBottom: '1.2mm' }}>
               <Inlines runs={item} />
             </li>
           ))}
@@ -90,16 +96,19 @@ function Node({ node, index }: { node: BodyNode; index: number }): ReactNode {
   }
 }
 
-/** One story as it appears in print: headline across the block, body flowing in columns. */
-export function ArticleView({ article, colSpan, onOverflowChange }: Props) {
-  const bodyRef = useRef<HTMLDivElement>(null);
+/**
+ * One story as it appears in print: headline across the tile, the first photo as a wide
+ * picture that grows or shrinks to use the tile's height, and the text flowing in columns.
+ */
+export function ArticleView({ article, cols, role, onOverflowChange }: Props) {
+  const rootRef = useRef<HTMLElement>(null);
   const lastOverflow = useRef(false);
 
   const check = useCallback(() => {
-    const el = bodyRef.current;
+    const el = rootRef.current;
     if (!el || !onOverflowChange) return;
-    // With a fixed height, text that does not fit spills into extra columns to the right.
-    const overflowing = el.scrollWidth > el.clientWidth + 1;
+    // Text that does not fit pushes past the bottom of the tile.
+    const overflowing = el.scrollHeight > el.clientHeight + 1;
     if (overflowing !== lastOverflow.current) {
       lastOverflow.current = overflowing;
       onOverflowChange(overflowing);
@@ -109,7 +118,7 @@ export function ArticleView({ article, colSpan, onOverflowChange }: Props) {
   useLayoutEffect(check);
 
   useEffect(() => {
-    const el = bodyRef.current;
+    const el = rootRef.current;
     if (!el) return;
     const observer = new ResizeObserver(check);
     observer.observe(el);
@@ -117,19 +126,28 @@ export function ArticleView({ article, colSpan, onOverflowChange }: Props) {
     return () => observer.disconnect();
   }, [check]);
 
-  const headlineLang = detectLanguage(article.headline);
-  const empty = article.headline.trim() === '' && article.body.length === 0;
+  const heroIndex = article.body.findIndex((n) => n.type === 'image');
+  const hero = heroIndex >= 0 ? article.body[heroIndex] : undefined;
+  const bodyNodes = article.body.filter((_, i) => i !== heroIndex);
+  const headSize = headlinePt(cols, role);
 
   return (
     <article
+      ref={rootRef}
       className="paper"
+      onLoadCapture={check}
       style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
     >
       {article.headline.trim() !== '' && (
         <h2
           className="headline"
-          lang={headlineLang}
-          style={{ margin: '0 0 1mm', fontSize: `${headlinePt(colSpan)}pt` }}
+          lang={detectLanguage(article.headline)}
+          style={{
+            margin: '0 0 1.2mm',
+            fontSize: `${headSize}pt`,
+            flex: 'none',
+            ...(role === 'banner' && { fontWeight: 800, letterSpacing: '-0.01em' }),
+          }}
         >
           {article.headline}
         </h2>
@@ -137,7 +155,13 @@ export function ArticleView({ article, colSpan, onOverflowChange }: Props) {
       {article.subHeadline.trim() !== '' && (
         <p
           lang={detectLanguage(article.subHeadline)}
-          style={{ margin: '0 0 1.2mm', fontSize: '11pt', fontWeight: 600, color: '#222' }}
+          style={{
+            margin: '0 0 1.2mm',
+            fontSize: role === 'brief' ? '9pt' : '11pt',
+            fontWeight: 600,
+            color: '#222',
+            flex: 'none',
+          }}
         >
           {article.subHeadline}
         </p>
@@ -147,33 +171,60 @@ export function ArticleView({ article, colSpan, onOverflowChange }: Props) {
           lang={detectLanguage(article.byline)}
           style={{
             margin: '0 0 1.5mm',
-            fontSize: '7.5pt',
+            fontSize: '7pt',
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
             fontFamily: 'var(--font-ui)',
             fontWeight: 600,
-            color: '#555',
+            color: '#1d4ed8',
+            flex: 'none',
           }}
         >
           {article.byline}
         </p>
       )}
+      {hero?.type === 'image' && (
+        <figure
+          style={{
+            margin: '0 0 1.5mm',
+            flex: '1 1 0',
+            minHeight: `${heroMinMm(cols)}mm`,
+            // Never let the photo grow taller than a 3:2 picture would be at this width.
+            maxHeight: `${spanWidthMm(cols) * 0.67}mm`,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <div style={{ flex: '1 1 0', minHeight: 0, overflow: 'hidden' }}>
+            <AssetImage
+              assetId={hero.assetId}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </div>
+          {hero.caption.trim() !== '' && (
+            <figcaption
+              lang={detectLanguage(hero.caption)}
+              style={{ flex: 'none', fontSize: '7pt', fontStyle: 'italic', color: '#333', marginTop: '0.6mm' }}
+            >
+              {hero.caption}
+            </figcaption>
+          )}
+        </figure>
+      )}
       <div
-        ref={bodyRef}
-        onLoadCapture={check}
         style={{
-          flex: '1 1 0',
-          minHeight: 0,
-          overflow: 'hidden',
-          columnCount: colSpan,
+          flex: '0 0 auto',
+          columnCount: cols,
           columnGap: '4mm',
           columnFill: 'balance',
           columnRule: '0.2mm solid #bbb',
-          fontSize: `${BODY_PT}pt`,
+          fontSize: `${bodyPt(role)}pt`,
           textAlign: 'justify',
         }}
       >
-        {empty ? null : article.body.map((node, i) => <Node key={i} node={node} index={i} />)}
+        {bodyNodes.map((node, i) => (
+          <Node key={i} node={node} index={i} />
+        ))}
       </div>
     </article>
   );

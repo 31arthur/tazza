@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import type { Article } from '@domain/entities/Article';
+import { articleIdsOf } from '@domain/layout/tree';
 import { useUseCases } from '../../hooks/AppContext';
 import { createSampleImages } from '../../lib/sampleImages';
 import { articlesKey, editionKey, useArticles, useEdition, useEditionId } from '../queries';
@@ -25,7 +26,7 @@ export function WritePage() {
   const placedOn = useMemo(() => {
     const map = new Map<string, number>();
     for (const page of edition?.pages ?? []) {
-      for (const block of page.blocks) map.set(block.articleId, page.number);
+      for (const articleId of articleIdsOf(page.layout)) map.set(articleId, page.number);
     }
     return map;
   }, [edition]);

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Printer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { articleIdsOf } from '@domain/layout/tree';
 import { Button } from '../../components/ui/button';
 import { useFitScale } from '../../hooks/useFitScale';
 import { PageRenderer } from '../../print/PageRenderer';
@@ -17,7 +18,7 @@ export function PreviewPage() {
   const articles = useMemo(() => new Map(articleList.map((a) => [a.id, a])), [articleList]);
 
   if (!edition) return null;
-  const hasContent = edition.pages.some((p) => p.blocks.length > 0);
+  const hasContent = edition.pages.some((p) => articleIdsOf(p.layout).length > 0);
 
   return (
     <div className="flex h-full flex-col print:block print:h-auto">

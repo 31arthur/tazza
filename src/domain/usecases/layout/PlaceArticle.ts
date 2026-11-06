@@ -1,19 +1,19 @@
+import { findPage, replacePage, withoutArticle, type Edition } from '../../entities/Edition';
+import { LayoutError } from '../../errors/DomainError';
+import { fitPage } from '../../layout/fit';
 import {
-  findFreeSpot,
-  findPage,
-  replacePage,
-  withoutArticle,
-  type Edition,
-} from '../../entities/Edition';
-import { LayoutError, NotFoundError } from '../../errors/DomainError';
+  appendBottom,
+  emptyLeavesByPriority,
+  makeLeaf,
+  normalize,
+  setLeafArticle,
+} from '../../layout/tree';
 import type { ArticleRepository } from '../../ports/repositories/ArticleRepository';
 import type { EditionRepository } from '../../ports/repositories/EditionRepository';
 import type { IdGenerator } from '../../ports/services/IdGenerator';
-import { estimateBlockSize } from '../../services/CopyfitEstimator';
+import { loadLayoutContext } from './support';
 
-const MIN_ROWS = 3;
-
-/** Places (or moves) an article onto a page in the first free spot that fits its estimated size. */
+/** Puts a story on a page: into its best empty slot, or as a new tile along the bottom. */
 export class PlaceArticle {
   constructor(
     private readonly articles: ArticleRepository,
@@ -30,26 +30,21 @@ export class PlaceArticle {
     pageNumber: number;
     articleId: string;
   }): Promise<Edition> {
-    const edition = await this.editions.find(editionId);
-    if (!edition) throw new NotFoundError(`Edition ${editionId} not found`);
-    const article = await this.articles.getById(articleId);
+    const ctx = await loadLayoutContext(this.articles, this.editions, editionId);
+    if (!ctx.lookup(articleId)) throw new LayoutError('Story not found');
 
-    const cleared = withoutArticle(edition, articleId);
-    const page = findPage(cleared, pageNumber);
-    const size = estimateBlockSize(article);
+    const edition = withoutArticle(ctx.edition, articleId);
+    const page = findPage(edition, pageNumber);
+    const slot = emptyLeavesByPriority(page.layout)[0];
+    const layout = slot
+      ? setLeafArticle(page.layout, slot.id, articleId)
+      : appendBottom(page.layout, makeLeaf(this.ids.next(), 'story', articleId), this.ids);
 
-    // Prefer the estimated height; accept a shorter block (it may overflow) before giving up.
-    for (let rows = size.rowSpan; rows >= MIN_ROWS; rows--) {
-      const placement = findFreeSpot(page, size.colSpan, rows);
-      if (placement) {
-        const updated = replacePage(cleared, {
-          ...page,
-          blocks: [...page.blocks, { id: this.ids.next(), articleId, placement }],
-        });
-        await this.editions.save(updated);
-        return updated;
-      }
-    }
-    throw new LayoutError(`No free space for this story on page ${pageNumber}`);
+    const updated = replacePage(edition, {
+      number: pageNumber,
+      layout: fitPage(normalize(layout), pageNumber, ctx.lookup),
+    });
+    await this.editions.save(updated);
+    return updated;
   }
 }

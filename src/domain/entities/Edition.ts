@@ -1,21 +1,9 @@
 import { LayoutError } from '../errors/DomainError';
-import {
-  GRID,
-  gridRows,
-  placementInBounds,
-  placementsOverlap,
-  type GridPlacement,
-} from '../services/PageGeometry';
-
-export interface Block {
-  readonly id: string;
-  readonly articleId: string;
-  readonly placement: GridPlacement;
-}
+import { articleIdsOf, clearArticle, type LayoutNode } from '../layout/tree';
 
 export interface Page {
   readonly number: number;
-  readonly blocks: readonly Block[];
+  readonly layout: LayoutNode;
 }
 
 /** One newspaper edition per calendar date; its id is the ISO date (YYYY-MM-DD). */
@@ -24,10 +12,17 @@ export interface Edition {
   readonly pages: readonly Page[];
 }
 
-export const newEdition = (id: string): Edition => ({ id, pages: [{ number: 1, blocks: [] }] });
+export const newEdition = (id: string, firstPage: LayoutNode): Edition => ({
+  id,
+  pages: [{ number: 1, layout: firstPage }],
+});
 
 export const placedArticleIds = (edition: Edition): Set<string> =>
-  new Set(edition.pages.flatMap((p) => p.blocks.map((b) => b.articleId)));
+  new Set(edition.pages.flatMap((p) => articleIdsOf(p.layout)));
+
+/** Page number an article sits on, if it is placed. */
+export const pageOf = (edition: Edition, articleId: string): number | undefined =>
+  edition.pages.find((p) => articleIdsOf(p.layout).includes(articleId))?.number;
 
 export const findPage = (edition: Edition, pageNumber: number): Page => {
   const page = edition.pages.find((p) => p.number === pageNumber);
@@ -40,40 +35,8 @@ export const replacePage = (edition: Edition, page: Page): Edition => ({
   pages: edition.pages.map((p) => (p.number === page.number ? page : p)),
 });
 
+/** Takes an article off every page; its slot stays behind, empty. */
 export const withoutArticle = (edition: Edition, articleId: string): Edition => ({
   ...edition,
-  pages: edition.pages.map((p) => ({
-    ...p,
-    blocks: p.blocks.filter((b) => b.articleId !== articleId),
-  })),
+  pages: edition.pages.map((p) => ({ ...p, layout: clearArticle(p.layout, articleId) })),
 });
-
-export const assertPlacementValid = (
-  page: Page,
-  placement: GridPlacement,
-  ignoreBlockId?: string,
-): void => {
-  if (!placementInBounds(placement, page.number)) {
-    throw new LayoutError('Block must stay inside the page grid');
-  }
-  const clash = page.blocks.some(
-    (b) => b.id !== ignoreBlockId && placementsOverlap(b.placement, placement),
-  );
-  if (clash) throw new LayoutError('Blocks cannot overlap');
-};
-
-/** First free spot (top-to-bottom, left-to-right) for a block of the given size. */
-export const findFreeSpot = (
-  page: Page,
-  colSpan: number,
-  rowSpan: number,
-): GridPlacement | undefined => {
-  const rows = gridRows(page.number);
-  for (let row = 0; row + rowSpan <= rows; row++) {
-    for (let col = 0; col + colSpan <= GRID.columns; col++) {
-      const candidate = { col, colSpan, row, rowSpan };
-      if (!page.blocks.some((b) => placementsOverlap(b.placement, candidate))) return candidate;
-    }
-  }
-  return undefined;
-};
