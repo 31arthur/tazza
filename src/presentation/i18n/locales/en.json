@@ -53,7 +53,8 @@
     "words": "{{count}} words",
     "imageFailed": "Could not add the image",
     "loadSamples": "Load sample stories",
-    "samplesLoaded": "{{count}} sample stories added"
+    "samplesLoaded": "{{count}} sample stories added",
+    "dateline": "Dateline (place, e.g. HYDERABAD:)"
   },
   "layout": {
     "autoLayout": "Auto layout",
@@ -83,7 +84,8 @@
       "lead": "Lead",
       "story": "Story",
       "box": "Boxed",
-      "brief": "Brief"
+      "brief": "Brief",
+      "teaser": "Teaser"
     },
     "clearSlot": "Take story out",
     "removeSlot": "Delete this space",
@@ -100,5 +102,59 @@
     "print": "Print / Save as PDF",
     "hint": "A3 pages, exactly as printed. In the print dialog choose Save as PDF, paper size A3, margins None, scale 100%.",
     "empty": "No stories on the pages yet. Use"
+  },
+  "style": {
+    "title": "Style",
+    "accent": "Accent colour",
+    "headlineColor": "Headline colour",
+    "headline": {
+      "ink": "Black",
+      "accent": "Accent"
+    },
+    "tint": "Background tint",
+    "tints": {
+      "none": "None",
+      "yellow": "Yellow",
+      "blue": "Blue",
+      "pink": "Pink",
+      "green": "Green",
+      "grey": "Grey"
+    },
+    "frame": "Frame",
+    "frames": {
+      "rule": "Rule below",
+      "box": "Box",
+      "none": "None"
+    },
+    "font": "Headline font",
+    "fonts": {
+      "serif": "Serif",
+      "sans": "Sans bold",
+      "display": "Heavy display"
+    },
+    "kicker": "Kicker label",
+    "jump": "Jump line",
+    "overPhoto": "Headline over photo",
+    "deckBand": "Deck on yellow band",
+    "reset": "Reset to role style",
+    "colors": {
+      "ink": "Ink",
+      "red": "Red",
+      "blue": "Blue",
+      "green": "Green",
+      "amber": "Amber"
+    }
+  },
+  "masthead": {
+    "title": "Masthead",
+    "name": "Title (Telugu)",
+    "nameEn": "Name (English)",
+    "tagline": "Tagline",
+    "color": "Colour",
+    "leftEar": "Left ear",
+    "rightEar": "Right ear",
+    "earHint": "First line is the headline",
+    "topStrip": "Top strip text",
+    "printMarks": "Colour registration marks"
   }
 }

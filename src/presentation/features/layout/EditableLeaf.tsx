@@ -56,7 +56,7 @@ export function EditableLeaf({
         <ArticleView
           article={article}
           cols={placed.cols}
-          role={leaf.role}
+          leaf={leaf}
           onOverflowChange={setOverflowing}
         />
       ) : (

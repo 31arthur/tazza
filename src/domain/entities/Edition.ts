@@ -1,4 +1,5 @@
 import { LayoutError } from '../errors/DomainError';
+import type { Masthead } from '../layout/style';
 import { articleIdsOf, clearArticle, type LayoutNode } from '../layout/tree';
 
 export interface Page {
@@ -10,6 +11,8 @@ export interface Page {
 export interface Edition {
   readonly id: string;
   readonly pages: readonly Page[];
+  /** Overrides of the default masthead (logo, ears, colours). */
+  readonly masthead?: Partial<Masthead>;
 }
 
 export const newEdition = (id: string, firstPage: LayoutNode): Edition => ({

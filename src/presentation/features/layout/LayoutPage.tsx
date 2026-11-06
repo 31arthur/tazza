@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { placedArticleIds } from '@domain/entities/Edition';
 import { pageFill } from '@domain/layout/fit';
+import { resolveMasthead } from '@domain/layout/style';
 import { TEMPLATE_IDS, type TemplateId } from '@domain/layout/templates';
 import { layoutRects, leavesOf, type SlotRole } from '@domain/layout/tree';
 import { detectLanguage } from '@domain/services/detectLanguage';
@@ -15,9 +16,11 @@ import { ScaledPage } from '../../print/ScaledPage';
 import { useArticles, useEdition, useEditionId, useLayoutActions } from '../queries';
 import { DividerHandle } from './DividerHandle';
 import { EditableLeaf } from './EditableLeaf';
+import { MastheadPanel } from './MastheadPanel';
+import { StylePanel } from './StylePanel';
 import { useLayoutDnd, type DragSource, type DropTarget } from './useLayoutDnd';
 
-const ROLES: SlotRole[] = ['banner', 'lead', 'story', 'box', 'brief'];
+const ROLES: SlotRole[] = ['banner', 'lead', 'story', 'box', 'brief', 'teaser'];
 
 const selectClass = 'h-9 w-full rounded-md border bg-transparent px-2 text-sm text-foreground';
 
@@ -244,6 +247,7 @@ export function LayoutPage() {
               <PageRenderer
                 page={page}
                 editionId={editionId}
+                masthead={resolveMasthead(edition.masthead)}
                 articles={articles}
                 renderLeaf={(args) => (
                   <EditableLeaf
@@ -304,7 +308,7 @@ export function LayoutPage() {
       </section>
 
       {/* Right: inspector */}
-      <aside className="border-l bg-card p-3">
+      <aside className="min-h-0 overflow-y-auto border-l bg-card p-3">
         {selectedLeaf ? (
           <div className="flex flex-col gap-3">
             <div
@@ -371,9 +375,20 @@ export function LayoutPage() {
             >
               {t('layout.removeSlot')}
             </Button>
+            <StylePanel
+              leaf={selectedLeaf}
+              onChange={(style) => void actions.setSlotStyle(page.number, selectedLeaf.id, style)}
+            />
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">{t('layout.hint')}</p>
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">{t('layout.hint')}</p>
+            <MastheadPanel
+              key={editionId}
+              settings={resolveMasthead(edition.masthead)}
+              onChange={(patch) => void actions.updateMasthead(patch)}
+            />
+          </div>
         )}
       </aside>
 

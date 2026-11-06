@@ -43,7 +43,7 @@ export function allocateColumns(
 
 /** Height in mm a node needs when it is `cols` columns wide. */
 export function needMm(node: LayoutNode, cols: number, lookup: ArticleLookup): number {
-  if (node.kind === 'leaf') return estimateStoryMm(articleOf(node, lookup), cols, node.role);
+  if (node.kind === 'leaf') return estimateStoryMm(articleOf(node, lookup), cols, node);
   if (node.direction === 'row') {
     const sizes = allocateColumns(node.children, cols, lookup);
     return Math.max(...node.children.map((c, i) => needMm(c, sizes[i] ?? 1, lookup)));

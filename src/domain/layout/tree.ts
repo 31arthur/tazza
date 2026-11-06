@@ -1,5 +1,6 @@
 import { LayoutError } from '../errors/DomainError';
 import type { IdGenerator } from '../ports/services/IdGenerator';
+import type { LeafStyle } from './style';
 import { COLUMN_WIDTH_MM, GRID, liveRectMm, type RectMm } from '../services/PageGeometry';
 
 /**
@@ -7,7 +8,7 @@ import { COLUMN_WIDTH_MM, GRID, liveRectMm, type RectMm } from '../services/Page
  * rectangle holds one story. Because the tiles always cover the page, moving a story simply
  * re-divides the space and the rest of the page re-fits around it.
  */
-export type SlotRole = 'banner' | 'lead' | 'story' | 'box' | 'brief';
+export type SlotRole = 'banner' | 'lead' | 'story' | 'box' | 'brief' | 'teaser';
 export type Direction = 'row' | 'column';
 export type Edge = 'left' | 'right' | 'top' | 'bottom';
 
@@ -15,6 +16,8 @@ export interface Leaf {
   readonly kind: 'leaf';
   readonly id: string;
   readonly role: SlotRole;
+  /** Overrides of the role's preset style (colours, frame, kicker, jump line, ...). */
+  readonly style?: Partial<LeafStyle>;
   /** Template slots are filled in priority order (1 = most important). */
   readonly priority?: number;
   readonly articleId?: string;
@@ -72,6 +75,18 @@ export const setLeafArticle = (
 
 export const setLeafRole = (node: LayoutNode, leafId: string, role: SlotRole): LayoutNode =>
   mapLeaves(node, (l) => (l.id === leafId ? { ...l, role } : l));
+
+/** Merges style overrides into a tile; `null` resets it to its role's preset. */
+export const setLeafStyle = (
+  node: LayoutNode,
+  leafId: string,
+  style: Partial<LeafStyle> | null,
+): LayoutNode =>
+  mapLeaves(node, (l) => {
+    if (l.id !== leafId) return l;
+    const { style: _old, ...rest } = l;
+    return style === null ? rest : { ...rest, style: { ..._old, ...style } };
+  });
 
 export const swapArticles = (node: LayoutNode, aId: string, bId: string): LayoutNode => {
   const a = findLeaf(node, aId)?.articleId;

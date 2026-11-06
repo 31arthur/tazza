@@ -79,9 +79,12 @@ export function buildTemplate(id: TemplateId, ids: IdGenerator): LayoutNode {
 }
 
 /** Templates auto layout may choose for a page, fullest first. Front-page ones suit page 1 only. */
-export const autoTemplateCandidates = (pageNumber: number): TemplateId[] =>
-  TEMPLATE_IDS.filter((id) => pageNumber === 1 || !id.startsWith('front')).sort(
-    (a, b) => slotCount(b) - slotCount(a),
-  );
+export const autoTemplateCandidates = (pageNumber: number): TemplateId[] => {
+  const fullestFirst = (a: TemplateId, b: TemplateId) => slotCount(b) - slotCount(a);
+  const front = TEMPLATE_IDS.filter((id) => id.startsWith('front')).sort(fullestFirst);
+  const inner = TEMPLATE_IDS.filter((id) => !id.startsWith('front')).sort(fullestFirst);
+  // Page 1 is a front page whenever a front template fits; inner templates are the fallback.
+  return pageNumber === 1 ? [...front, ...inner] : inner;
+};
 
 export const TEMPLATE_COLUMNS = GRID.columns;
