@@ -7,6 +7,8 @@ import type { AssetRepository } from '../ports/repositories/AssetRepository';
 import type { EditionRepository } from '../ports/repositories/EditionRepository';
 import type { LibraryItem } from '../entities/LibraryItem';
 import type { LibraryRepository } from '../ports/repositories/LibraryRepository';
+import { DEFAULT_SYNC_SETTINGS, EMPTY_SYNC_STATE, type SyncSettings, type SyncState } from '../entities/Sync';
+import type { SyncStateRepository } from '../ports/repositories/SyncStateRepository';
 import type { Clock } from '../ports/services/Clock';
 import type { IdGenerator } from '../ports/services/IdGenerator';
 
@@ -74,6 +76,23 @@ export class InMemoryLibraryRepository implements LibraryRepository {
   }
   async delete(id: string): Promise<void> {
     this.items.delete(id);
+  }
+}
+
+export class InMemorySyncState implements SyncStateRepository {
+  state: SyncState = EMPTY_SYNC_STATE;
+  settings: SyncSettings = DEFAULT_SYNC_SETTINGS;
+  async loadState(): Promise<SyncState> {
+    return this.state;
+  }
+  async saveState(state: SyncState): Promise<void> {
+    this.state = state;
+  }
+  loadSettings(): SyncSettings {
+    return this.settings;
+  }
+  saveSettings(settings: SyncSettings): void {
+    this.settings = settings;
   }
 }
 

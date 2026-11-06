@@ -428,5 +428,22 @@
     "restoreVersion": "Restore this version",
     "confirmRestore": "Replace the story text with this version? The current text is kept as a version.",
     "noVersions": "No saved versions yet."
+  },
+  "sync": {
+    "title": "Share this edition",
+    "intro": "Run the Tazza sync server on one computer (pnpm sync-server), then enter its address and token on every computer that should share the same stories, pages and photos.",
+    "serverUrl": "Server address",
+    "token": "Token",
+    "enable": "Keep in sync automatically",
+    "test": "Test connection",
+    "save": "Save",
+    "now": "Sync now",
+    "testOk": "Connected to the sync server.",
+    "off": "Sync off",
+    "on": "Synced",
+    "syncing": "Syncing…",
+    "error": "Sync problem",
+    "lastSynced": "Last synced at {{time}}.",
+    "conflicts": "Changed on two computers at once; this computer's version was kept:"
   }
 }

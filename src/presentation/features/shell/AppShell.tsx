@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { LanguageSwitcher } from '../../components/LanguageSwitcher';
+import { SyncControl } from './SyncControl';
 import { cn } from '../../lib/utils';
 import { ROLES } from '@domain/entities/Workflow';
 import { useEditionStore } from '../../state/editionStore';
@@ -78,6 +79,7 @@ export function AppShell() {
               className="h-9 rounded-md border bg-transparent px-2 text-foreground"
             />
           </label>
+          <SyncControl />
           <LanguageSwitcher />
         </div>
       </header>

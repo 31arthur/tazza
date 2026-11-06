@@ -104,8 +104,9 @@ Status: ✅ done (Phase A shipped) · ⏭ planned · 💭 later.
 | Edition export/import bundle (backup) | ⏭ |
 | Roles (reporter, editor, designer), comments, approvals on this computer | ✅ |
 | Accounts and sign-in | 💭 |
-| Real-time collaboration, cloud sync | 💭 |
-| PWA/offline install | ⏭ |
+| Sync between computers: stories, editions (page by page), photos, comments (self-hosted server, near-real-time polling) | ✅ |
+| Live co-editing of one story (cursors, character-level merge) | 💭 |
+| PWA/offline install | ✅ |
 | Desktop shell (Tauri/Electron) | 💭 |
 
 ## 5. Studio architecture

@@ -157,6 +157,19 @@ Every story has a status: **Draft**, **In review**, **Approved**. Who is working
 - **Preflight** warns about placed stories that are not approved and notes unresolved comments.
 - **Limits:** there are no accounts, so anyone can pick any role; with local-first storage there is no live handoff between computers (that is Phase H). Stories from before the workflow count as drafts.
 
+### Sharing an edition between computers
+
+Two or more people can work on one edition from different computers. Run the sync server on one machine (`SYNC_TOKEN=secret pnpm sync-server`, port 8787, data in `.tazza-sync`), then in the top bar open the cloud button on every computer, enter the server address and token, and switch sync on. Everyone keeps working locally; syncing happens when you switch it on, every 8 seconds, and when the window regains focus.
+
+- **What is shared:** stories (with comments and versions), editions and photos (with their pictures). The template library, brand kit, role and name stay on each computer.
+- **How changes combine** (`syncMerge.ts`, `SyncNow`): each computer remembers the copy last agreed with the server, so it can tell who changed what. A story is merged field by field (headline, byline, text, status...), and comments and versions from both sides are kept; if both changed the same field, the story edited most recently wins. An edition is merged **page by page**, so two people laying out different pages never disturb each other, and masthead and masters merge as separate parts. If both changed the **same page**, this computer's page is kept and the sync button shows the conflict so you can look. A deletion is followed unless the item was changed elsewhere meanwhile (then it is kept).
+- **The server** only stores documents and refuses a change made on an out-of-date revision, which makes that computer pull, combine and try again, so nothing is overwritten silently. It checks one shared token; put HTTPS in front of it if it is reachable from outside your network.
+- **Limits:** it is polling, not live typing: two people editing the *same* story text at once is resolved per field, not per character, and an open editor does not show changes pulled while you type until you reopen the story. Page deletions and renumbering can surface as page conflicts. No per-person accounts: roles are still a choice in the top bar. The template library is not synced.
+
+### Offline use
+
+The built app (`pnpm build`, served over HTTP/HTTPS) registers a service worker and a web-app manifest, so it opens without a network and can be installed from the browser. Sync and export requests are never cached. The dev server does not register it.
+
 ### Masters
 
 A **master** holds free objects that repeat on every page that uses it (a header rule, a running label, a watermark). Master objects are drawn **behind** the page's tiles and objects, in the editor, preview and print. Pick a master for the page from the Master menu, press **New master** to move the page's current objects onto a new one, or **Edit master** to change it: the canvas then shows only the master's objects, and the change appears on every page that uses it. Deleting a master just stops pages showing it.
