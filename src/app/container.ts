@@ -8,6 +8,7 @@ import { CreateArticle } from '@domain/usecases/article/CreateArticle';
 import { DeleteArticle } from '@domain/usecases/article/DeleteArticle';
 import { GetArticle } from '@domain/usecases/article/GetArticle';
 import { ListArticles } from '@domain/usecases/article/ListArticles';
+import { LoadSampleStories } from '@domain/usecases/article/LoadSampleStories';
 import { UpdateArticle } from '@domain/usecases/article/UpdateArticle';
 import { GetAssetBlob } from '@domain/usecases/asset/GetAssetBlob';
 import { SaveAsset } from '@domain/usecases/asset/SaveAsset';
@@ -43,6 +44,7 @@ export const createContainer = (): Container => {
     getArticle: new GetArticle(articles),
     updateArticle: new UpdateArticle(articles, clock),
     deleteArticle: new DeleteArticle(articles, editions),
+    loadSampleStories: new LoadSampleStories(articles, assets, ids, clock),
     saveAsset: new SaveAsset(assets, ids),
     getAssetBlob: new GetAssetBlob(assets),
     addPage: new AddPage(editions),

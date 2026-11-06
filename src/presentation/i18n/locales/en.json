@@ -1,10 +1,30 @@
 {
-  "app": { "name": "Tazza", "tagline": "Fresh news, every day" },
-  "nav": { "write": "Write", "layout": "Layout", "preview": "Preview" },
-  "edition": { "date": "Edition date" },
-  "language": { "te": "Telugu", "en": "English", "switch": "Interface language" },
-  "errors": { "generic": "Something went wrong" },
-  "save": { "saved": "Saved", "dirty": "Unsaved changes", "saving": "Saving…", "error": "Save failed" },
+  "app": {
+    "name": "Tazza",
+    "tagline": "Fresh news, every day"
+  },
+  "nav": {
+    "write": "Write",
+    "layout": "Layout",
+    "preview": "Preview"
+  },
+  "edition": {
+    "date": "Edition date"
+  },
+  "language": {
+    "te": "Telugu",
+    "en": "English",
+    "switch": "Interface language"
+  },
+  "errors": {
+    "generic": "Something went wrong"
+  },
+  "save": {
+    "saved": "Saved",
+    "dirty": "Unsaved changes",
+    "saving": "Saving…",
+    "error": "Save failed"
+  },
   "toolbar": {
     "bold": "Bold",
     "italic": "Italic",
@@ -31,7 +51,9 @@
     "delete": "Delete",
     "confirmDelete": "Delete this article?",
     "words": "{{count}} words",
-    "imageFailed": "Could not add the image"
+    "imageFailed": "Could not add the image",
+    "loadSamples": "Load sample stories",
+    "samplesLoaded": "{{count}} sample stories added"
   },
   "layout": {
     "autoLayout": "Auto layout",

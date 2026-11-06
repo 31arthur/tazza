@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { FilePlus2, Trash2 } from 'lucide-react';
+import { FilePlus2, Sparkles, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { bodyParagraphs, type Article } from '@domain/entities/Article';
 import { detectLanguage } from '@domain/services/detectLanguage';
@@ -15,9 +15,18 @@ interface Props {
   onSelect: (id: string) => void;
   onCreate: () => void;
   onDelete: (article: Article) => void;
+  onLoadSamples: () => void;
 }
 
-export function ArticleList({ articles, placedOn, selectedId, onSelect, onCreate, onDelete }: Props) {
+export function ArticleList({
+  articles,
+  placedOn,
+  selectedId,
+  onSelect,
+  onCreate,
+  onDelete,
+  onLoadSamples,
+}: Props) {
   const { t } = useTranslation();
 
   return (
@@ -25,6 +34,9 @@ export function ArticleList({ articles, placedOn, selectedId, onSelect, onCreate
       <div className="border-b p-3">
         <Button className="w-full" onClick={onCreate}>
           <FilePlus2 /> {t('write.newArticle')}
+        </Button>
+        <Button variant="outline" className="mt-2 w-full" onClick={onLoadSamples}>
+          <Sparkles /> {t('write.loadSamples')}
         </Button>
       </div>
       {articles.length === 0 ? (

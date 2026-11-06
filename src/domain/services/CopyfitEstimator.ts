@@ -21,7 +21,8 @@ const textHeightMm = (
   if (text.trim() === '') return 0;
   const te = detectLanguage(text) === 'te';
   const sizeMm = ptSize * PT_MM;
-  const charW = sizeMm * (headline ? (te ? 0.52 : 0.55) : te ? 0.4 : 0.46);
+  // Average advance per character, measured from real renders (justified text wastes some space).
+  const charW = sizeMm * (headline ? (te ? 0.6 : 0.62) : te ? 0.45 : 0.54);
   const lineH = sizeMm * (te ? 1.6 : headline ? 1.15 : 1.38);
   const charsPerLine = Math.max(4, Math.floor(widthMm / charW));
   return Math.ceil(text.length / charsPerLine) * lineH;
@@ -38,9 +39,11 @@ export const estimateRows = (article: Article, colSpan: number): number => {
     0,
   );
   const images = article.body.filter((n) => n.type === 'image').length;
-  const imageMm = images * (COLUMN_WIDTH_MM * IMAGE_ASPECT + 8);
+  const imageMm = images * (COLUMN_WIDTH_MM * IMAGE_ASPECT + 12);
 
-  const totalMm = head + sub + 6 + (bodyMm + imageMm) / colSpan;
+  // Columns never balance perfectly and images cannot split, so keep a safety margin.
+  const flowMm = ((bodyMm + imageMm) / colSpan) * 1.2 + 6;
+  const totalMm = head + sub + 8 + flowMm;
   return Math.max(3, Math.ceil(totalMm / GRID.rowMm));
 };
 

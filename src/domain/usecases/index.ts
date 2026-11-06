@@ -4,6 +4,7 @@ import type { CreateArticle } from './article/CreateArticle';
 import type { DeleteArticle } from './article/DeleteArticle';
 import type { GetArticle } from './article/GetArticle';
 import type { ListArticles } from './article/ListArticles';
+import type { LoadSampleStories } from './article/LoadSampleStories';
 import type { UpdateArticle } from './article/UpdateArticle';
 import type { GetOrCreateEdition } from './edition/GetOrCreateEdition';
 import type { AddPage } from './layout/AddPage';
@@ -22,6 +23,7 @@ export interface UseCases {
   getArticle: GetArticle;
   updateArticle: UpdateArticle;
   deleteArticle: DeleteArticle;
+  loadSampleStories: LoadSampleStories;
   saveAsset: SaveAsset;
   getAssetBlob: GetAssetBlob;
   addPage: AddPage;
