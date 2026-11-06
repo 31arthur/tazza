@@ -316,3 +316,16 @@ export function useAssetActions() {
     },
   };
 }
+
+/** Print-readiness problems of the current edition; refreshed whenever it is asked for again. */
+export function usePreflight(enabled: boolean) {
+  const editionId = useEditionId();
+  const { runPreflight } = useUseCases();
+  return useQuery({
+    queryKey: ['preflight', editionId],
+    queryFn: () => runPreflight.execute({ editionId }),
+    enabled: enabled && editionId !== '',
+    staleTime: 0,
+    gcTime: 0,
+  });
+}

@@ -1,5 +1,6 @@
 import type { DeleteAsset } from './asset/DeleteAsset';
 import type { GetAssetBlob } from './asset/GetAssetBlob';
+import type { RunPreflight } from './edition/RunPreflight';
 import type { ListAssets } from './asset/ListAssets';
 import type { UpdateAssetMeta } from './asset/UpdateAssetMeta';
 import type { SaveAsset } from './asset/SaveAsset';
@@ -80,6 +81,7 @@ export interface UseCases {
   listAssets: ListAssets;
   updateAssetMeta: UpdateAssetMeta;
   deleteAsset: DeleteAsset;
+  runPreflight: RunPreflight;
   addPage: AddPage;
   removePage: RemovePage;
   applyTemplate: ApplyTemplate;

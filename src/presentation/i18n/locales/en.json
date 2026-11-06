@@ -108,7 +108,9 @@
   "preview": {
     "print": "Print / Save as PDF",
     "hint": "A3 pages, exactly as printed. In the print dialog choose Save as PDF, paper size A3, margins None, scale 100%.",
-    "empty": "No stories on the pages yet. Use"
+    "empty": "No stories on the pages yet. Use",
+    "marks": "Trim marks",
+    "marksHint": "Print a larger sheet with trim marks and a slug line around each A3 page. Choose paper size 317 x 440 mm (or larger) in the print dialog."
   },
   "style": {
     "title": "Style",
@@ -359,5 +361,25 @@
     "ppi": "{{ppi}} ppi at print size",
     "lowRes": "may print soft",
     "reset": "Reset"
+  },
+  "preflight": {
+    "check": "Preflight",
+    "allClear": "No problems found. The pages are ready to print.",
+    "summary": "{{errors}} errors, {{warnings}} warnings, {{notes}} notes",
+    "confirmPrint": "There are errors that will show in print. Print anyway?",
+    "codes": {
+      "emptyPage": "The page is empty.",
+      "emptyTile": "A tile has no story or content.",
+      "missingStory": "A tile points to a story that no longer exists.",
+      "noHeadline": "A story has no headline.",
+      "overfull": "The stories need {{percent}}% of the page; the text will not fit.",
+      "photoMissing": "A photo box has no picture.",
+      "photoNotFound": "A photo is missing from the library.",
+      "lowResolution": "A photo prints at {{ppi}} ppi, below the 200 ppi needed for a sharp print.",
+      "noCaption": "A photo has no caption.",
+      "noCredit": "A photo has no credit.",
+      "emptyText": "A text object is empty.",
+      "offPage": "An object is completely outside the page."
+    }
   }
 }

@@ -125,6 +125,14 @@ The **Photos** screen is the library: search by name, credit, caption or tag, fi
 - A **print-resolution check** shows effective ppi for the frame size and warns below 200 ppi.
 - **Limits:** no free-form crop rectangle or arbitrary-angle rotation on tiles (object rotation is separate); tone is applied with CSS filters, so it is a preview-quality adjustment, not colour management.
 
+### Preflight and trim marks
+
+**Preflight** (Preview screen) checks the edition before it goes to press and lists problems by page; click one to jump to the page. Errors: story missing or without a headline, photo box without a picture or whose photo is gone from the library, a page whose stories need over 110% of the space. Warnings: pages over 102% full, empty pages or tiles, photos printing below 200 ppi, photos without a caption, empty text objects, objects completely off the page. Notes: photos without a credit. The check is a pure domain service (`runPreflight`, use case `RunPreflight`). Printing re-runs it and asks for confirmation when errors remain.
+
+**Trim marks** add a 10 mm slug around each A3 page, with corner marks and a "TAZZA - date - page" line; choose paper 317 x 440 mm (or larger) in the print dialog.
+
+- **Limits:** this is browser printing, so the marks and size depend on the print dialog. There is no true bleed (artwork is not extended beyond the trim edge), no fonts check, no one-click PDF, per-page PNG or edition backup bundle yet.
+
 ### Masters
 
 A **master** holds free objects that repeat on every page that uses it (a header rule, a running label, a watermark). Master objects are drawn **behind** the page's tiles and objects, in the editor, preview and print. Pick a master for the page from the Master menu, press **New master** to move the page's current objects onto a new one, or **Edit master** to change it: the canvas then shows only the master's objects, and the change appears on every page that uses it. Deleting a master just stops pages showing it.
