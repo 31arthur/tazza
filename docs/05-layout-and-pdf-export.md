@@ -141,6 +141,22 @@ Three buttons on the Preview screen: **PDF**, **Page images** and the **Save / R
 - **Edition backup** is one `.tazza.json` file holding the edition, its stories and the photos it uses (base64). **Restore** replaces the edition of that date and saves its stories and photos; restoring the same file twice changes nothing. Use it to back up, or to move a day's work to another computer.
 - **Limits:** the companion runs only with `pnpm dev` and needs Chrome, Edge or Chromium installed; in a plain build, use Print / Save as PDF. Page images download one after another. There is no PDF/X or CMYK, and edition status is not yet marked Exported.
 
+### Review workflow
+
+Every story has a status: **Draft**, **In review**, **Approved**. Who is working is set in the top bar (a name and a role). Roles are working hats kept on this computer, not logins.
+
+| Role | May do |
+|---|---|
+| Reporter | Write while the story is a draft; submit it for review |
+| Editor | Write until approved; approve, send back (a reason is required, kept as a comment), reopen an approved story |
+| Designer | Read, comment, lay out; never changes the text |
+
+- **Comments** are open to every role and can be resolved or reopened. Each status change also writes a history line.
+- **Versions:** a copy of the text is kept at each status change, before a restore, and when you press Save a version (the latest 20 are kept). Restoring keeps the current text as a version first.
+- **Rules live in the domain** (`Workflow.ts`, the use cases in `usecases/workflow`); the editor goes read-only when the role cannot change the story, and `UpdateArticle` refuses such edits too.
+- **Preflight** warns about placed stories that are not approved and notes unresolved comments.
+- **Limits:** there are no accounts, so anyone can pick any role; with local-first storage there is no live handoff between computers (that is Phase H). Stories from before the workflow count as drafts.
+
 ### Masters
 
 A **master** holds free objects that repeat on every page that uses it (a header rule, a running label, a watermark). Master objects are drawn **behind** the page's tiles and objects, in the editor, preview and print. Pick a master for the page from the Master menu, press **New master** to move the page's current objects onto a new one, or **Edit master** to change it: the canvas then shows only the master's objects, and the change appears on every page that uses it. Deleting a master just stops pages showing it.

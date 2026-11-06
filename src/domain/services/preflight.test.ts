@@ -12,6 +12,7 @@ const article = (id: string, headline = 'Headline', words = 40): Article => ({
   subHeadline: '',
   byline: '',
   body: [{ type: 'paragraph', children: [{ text: Array(words).fill('word').join(' ') }] }],
+  status: 'approved',
   createdAt: 0,
   updatedAt: 0,
 });
@@ -134,5 +135,20 @@ describe('preflight with bleed', () => {
     expect(run(full(-3, 103), 3)).toEqual([]);
     expect(run(full(50, 100), 3)).toEqual([]);
     expect(run(full(197, 100), 3)).toEqual(['shortOfBleed']);
+  });
+});
+
+describe('preflight and the review workflow', () => {
+  it('warns about stories that are not approved and notes open comments', () => {
+    const draft: Article = { ...article('a1'), status: 'review', notes: [
+      { id: 'n1', author: 'R', role: 'editor', text: 'check', at: 1, resolved: false },
+      { id: 'n2', author: 'R', role: 'editor', text: 'done', at: 1, resolved: true },
+      { id: 'n3', author: 'R', role: 'editor', text: 'review', at: 1, resolved: true, system: true },
+    ] };
+    const issues = runPreflight({ edition: edition(makeLeaf('t', 'lead', 'a1')), articles: [draft], assets: [] });
+    expect(issues.map((i) => [i.code, i.severity, i.params])).toEqual([
+      ['notApproved', 'warning', { status: 'review' }],
+      ['openNotes', 'info', { count: 1 }],
+    ]);
   });
 });

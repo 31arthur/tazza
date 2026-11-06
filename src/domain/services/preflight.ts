@@ -1,4 +1,4 @@
-import type { Article } from '../entities/Article';
+import { statusOf, type Article } from '../entities/Article';
 import type { Asset } from '../entities/Asset';
 import { masterObjectsFor, type Edition } from '../entities/Edition';
 import { MIN_PRINT_PPI, effectivePpi } from '../entities/ImageAdjust';
@@ -23,7 +23,9 @@ export type PreflightCode =
   | 'emptyText'
   | 'offPage'
   | 'shortOfBleed'
-  | 'fontMissing';
+  | 'fontMissing'
+  | 'notApproved'
+  | 'openNotes';
 
 /** One thing to look at before the pages go to press. */
 export interface PreflightIssue {
@@ -134,8 +136,18 @@ export const runPreflight = ({ edition, articles, assets, bleedMm = 0 }: Preflig
       const article = articleById.get(leaf.articleId);
       if (!article) {
         issues.push({ code: 'missingStory', severity: 'error', page: page.number, targetId: leaf.id });
-      } else if (!leaf.continuesFrom && !hasText(article.headline)) {
-        issues.push({ code: 'noHeadline', severity: 'error', page: page.number, targetId: leaf.id });
+      } else if (!leaf.continuesFrom) {
+        if (!hasText(article.headline)) {
+          issues.push({ code: 'noHeadline', severity: 'error', page: page.number, targetId: leaf.id });
+        }
+        const status = statusOf(article);
+        if (status !== 'approved') {
+          issues.push({ code: 'notApproved', severity: 'warning', page: page.number, targetId: leaf.id, params: { status } });
+        }
+        const open = (article.notes ?? []).filter((n) => !n.system && !n.resolved).length;
+        if (open > 0) {
+          issues.push({ code: 'openNotes', severity: 'info', page: page.number, targetId: leaf.id, params: { count: open } });
+        }
       }
     }
 

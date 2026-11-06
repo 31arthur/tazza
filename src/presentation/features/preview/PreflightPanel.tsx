@@ -47,7 +47,10 @@ export function PreflightPanel({
                 <Icon className={cn('mt-0.5 size-4 shrink-0', TONES[issue.severity])} />
                 <span>
                   {issue.page > 0 && <span className="font-medium">{t('layout.page', { n: issue.page })}: </span>}
-                  {t(`preflight.codes.${issue.code}`, { ...issue.params })}
+                  {t(`preflight.codes.${issue.code}`, {
+                    ...issue.params,
+                    ...(issue.code === 'notApproved' && { status: t(`workflow.status.${String(issue.params?.['status'])}`) }),
+                  })}
                 </span>
               </button>
             </li>

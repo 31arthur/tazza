@@ -16,6 +16,11 @@ import { DeleteAsset } from '@domain/usecases/asset/DeleteAsset';
 import { GetAssetBlob } from '@domain/usecases/asset/GetAssetBlob';
 import { ExportEditionBundle } from '@domain/usecases/edition/ExportEditionBundle';
 import { ImportEditionBundle } from '@domain/usecases/edition/ImportEditionBundle';
+import { AddArticleNote } from '@domain/usecases/workflow/AddArticleNote';
+import { ChangeArticleStatus } from '@domain/usecases/workflow/ChangeArticleStatus';
+import { ResolveArticleNote } from '@domain/usecases/workflow/ResolveArticleNote';
+import { RestoreArticleVersion } from '@domain/usecases/workflow/RestoreArticleVersion';
+import { SaveArticleVersion } from '@domain/usecases/workflow/SaveArticleVersion';
 import { RunPreflight } from '@domain/usecases/edition/RunPreflight';
 import { ListAssets } from '@domain/usecases/asset/ListAssets';
 import { UpdateAssetMeta } from '@domain/usecases/asset/UpdateAssetMeta';
@@ -109,6 +114,11 @@ export const createContainer = (): Container => {
     updateAssetMeta: new UpdateAssetMeta(assets),
     deleteAsset: new DeleteAsset(assets, articles, editions),
     runPreflight: new RunPreflight(editions, articles, assets),
+    changeArticleStatus: new ChangeArticleStatus(articles, ids, clock),
+    addArticleNote: new AddArticleNote(articles, ids, clock),
+    resolveArticleNote: new ResolveArticleNote(articles),
+    saveArticleVersion: new SaveArticleVersion(articles, ids, clock),
+    restoreArticleVersion: new RestoreArticleVersion(articles, ids, clock),
     exportEditionBundle: new ExportEditionBundle(editions, articles, assets, bundleCodec),
     importEditionBundle: new ImportEditionBundle(editions, articles, assets, bundleCodec),
     addPage: new AddPage(editions, ids),
