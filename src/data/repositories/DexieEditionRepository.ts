@@ -11,6 +11,10 @@ export class DexieEditionRepository implements EditionRepository {
     return record ? editionFromRecord(record) : undefined;
   }
 
+  async list(): Promise<Edition[]> {
+    return (await this.db.editions.toArray()).map(editionFromRecord);
+  }
+
   async save(edition: Edition): Promise<void> {
     await this.db.editions.put(editionToRecord(edition));
   }

@@ -81,8 +81,8 @@ Status: ✅ done (Phase A shipped) · ⏭ planned · 💭 later.
 | Capability | Status |
 |---|---|
 | Upload, downscale, store locally | ✅ |
-| Asset library panel (search, tags, credit, reuse across editions) | ⏭ |
-| Crop with focal point, rotate, brightness/contrast, greyscale | ⏭ |
+| Photo library (search, tags, credit, caption, where-used, reuse across editions) | ✅ |
+| Crop with focal point and zoom, rotate, brightness/contrast, greyscale, low-resolution warning | ✅ |
 | Background removal / cut-out | 💭 |
 | Shapes, lines, arrows, icons | ✅ basic shapes · ⏭ icon set |
 

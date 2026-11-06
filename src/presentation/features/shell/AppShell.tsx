@@ -9,6 +9,7 @@ const NAV = [
   { to: '/write', key: 'write' },
   { to: '/layout', key: 'layout' },
   { to: '/preview', key: 'preview' },
+  { to: '/photos', key: 'photos' },
   { to: '/templates', key: 'templates' },
 ] as const;
 

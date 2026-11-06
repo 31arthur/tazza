@@ -116,6 +116,15 @@ When a story does not fit its tile, **carry it on** in another tile: select the 
 - A continuation whose source no longer holds the same story is drawn empty rather than repeating the story.
 - **Limits:** the carry-on tile's size is an estimate, so it may need enlarging (the red "does not fit" bar says so) or continuing again; there is no automatic "continue to the next free page" yet.
 
+### Photo library and image tools
+
+The **Photos** screen is the library: search by name, credit, caption or tag, filter by tag chip, upload by button or by dropping files, and edit a photo's name, credit, default caption and tags. Each photo shows how many places use it; a photo in use cannot be deleted. Photos are stored once and reused across stories, editions and free image objects; **From library…** (photo tiles, image objects) and the toolbar library button (stories) pick from it without re-uploading.
+
+- **Crop & adjust** is non-destructive and stored on each *use* of a photo (`ImageAdjust`: focal point, zoom 1-3, quarter-turn rotation, greyscale, brightness, contrast), so two uses of one photo can be cropped differently. Click the thumbnail to set the focal point: the crop keeps that point in view. The original is never changed.
+- Printed credits come from the photo tile or story image: caption text followed by a bold "(credit)".
+- A **print-resolution check** shows effective ppi for the frame size and warns below 200 ppi.
+- **Limits:** no free-form crop rectangle or arbitrary-angle rotation on tiles (object rotation is separate); tone is applied with CSS filters, so it is a preview-quality adjustment, not colour management.
+
 ### Masters
 
 A **master** holds free objects that repeat on every page that uses it (a header rule, a running label, a watermark). Master objects are drawn **behind** the page's tiles and objects, in the editor, preview and print. Pick a master for the page from the Master menu, press **New master** to move the page's current objects onto a new one, or **Edit master** to change it: the canvas then shows only the master's objects, and the change appears on every page that uses it. Deleting a master just stops pages showing it.

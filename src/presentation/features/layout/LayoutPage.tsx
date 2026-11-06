@@ -751,6 +751,7 @@ export function LayoutPage() {
               <ElementPanel
                 tileId={selectedLeaf.id}
                 element={selectedLeaf.element}
+                frameMm={rects.leaves.find((l) => l.leaf.id === selectedLeaf.id)?.rect}
                 onChange={(element) =>
                   void actions.updateElement(page.number, selectedLeaf.id, element)
                 }

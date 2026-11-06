@@ -1,3 +1,4 @@
+import type { ImageAdjust } from '../entities/ImageAdjust';
 import type { LeafStyle } from './style';
 import type { SlotRole } from './tree';
 
@@ -10,7 +11,13 @@ export type ElementKind = 'photo' | 'text' | 'sidebar' | 'label' | 'ad';
 export const ELEMENT_KINDS: readonly ElementKind[] = ['photo', 'text', 'sidebar', 'label', 'ad'];
 
 export type Element =
-  | { readonly type: 'photo'; readonly assetId?: string; readonly caption: string }
+  | {
+      readonly type: 'photo';
+      readonly assetId?: string;
+      readonly caption: string;
+      readonly credit?: string;
+      readonly adjust?: Partial<ImageAdjust>;
+    }
   | { readonly type: 'text'; readonly heading: string; readonly body: string }
   | { readonly type: 'label'; readonly text: string }
   | { readonly type: 'ad'; readonly note: string };

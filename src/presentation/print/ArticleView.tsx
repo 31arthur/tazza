@@ -8,6 +8,7 @@ import { bodyPt, headlinePt, heroMinForLeaf } from '@domain/services/CopyfitEsti
 import { detectLanguage } from '@domain/services/detectLanguage';
 import { spanWidthMm } from '@domain/services/PageGeometry';
 import { AssetImage } from './AssetImage';
+import { PhotoCaption } from './PhotoCaption';
 import { Inlines } from './Inlines';
 
 interface Props {
@@ -110,15 +111,8 @@ function Node({
     case 'image':
       return (
         <figure style={{ margin: '0 0 2mm', breakInside: 'avoid' }}>
-          <AssetImage assetId={node.assetId} />
-          {node.caption.trim() !== '' && (
-            <figcaption
-              lang={detectLanguage(node.caption)}
-              style={{ fontSize: '7pt', fontStyle: 'italic', color: '#333', marginTop: '0.6mm' }}
-            >
-              {node.caption}
-            </figcaption>
-          )}
+          <AssetImage assetId={node.assetId} adjust={node.adjust} />
+          <PhotoCaption caption={node.caption} credit={node.credit} />
         </figure>
       );
   }
@@ -327,7 +321,8 @@ export function ArticleView({ article: story, cols, leaf, onOverflowChange, slic
           <div style={{ flex: '1 1 0', minHeight: 0, overflow: 'hidden', position: 'relative' }}>
             <AssetImage
               assetId={hero.assetId}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              adjust={hero.adjust}
+              style={{ width: '100%', height: '100%' }}
             />
             {overPhoto && (
               <div
@@ -346,14 +341,7 @@ export function ArticleView({ article: story, cols, leaf, onOverflowChange, slic
               </div>
             )}
           </div>
-          {hero.caption.trim() !== '' && (
-            <figcaption
-              lang={detectLanguage(hero.caption)}
-              style={{ flex: 'none', fontSize: '7pt', fontStyle: 'italic', color: '#333', marginTop: '0.6mm' }}
-            >
-              {hero.caption}
-            </figcaption>
-          )}
+          <PhotoCaption caption={hero.caption} credit={hero.credit} style={{ flex: 'none' }} />
         </figure>
       )}
       {overPhoto && deckAndByline}

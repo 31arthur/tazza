@@ -1,26 +1,30 @@
-import { useRef } from 'react';
-import { ImagePlus } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { ImagePlus, Library } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 import type { Element } from '@domain/layout/element';
 import { detectLanguage } from '@domain/services/detectLanguage';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
-import { useUseCases } from '../../hooks/AppContext';
-import { isImageFile, prepareImage } from '../../lib/image';
+import { isImageFile } from '../../lib/image';
+import { AssetPicker } from '../assets/AssetPicker';
+import { ImageAdjustPanel } from '../assets/ImageAdjustPanel';
+import { useAssetActions } from '../queries';
 
 interface Props {
   /** Changes when a different tile is selected, so fields reset to its content. */
   tileId: string;
   element: Element;
+  /** Size of the tile in millimetres, for the print-resolution check. */
+  frameMm?: { w: number; h: number } | undefined;
   onChange: (element: Element) => void;
 }
 
 /** Edits the content of an element tile: photo and caption, heading and text, label or note. */
-export function ElementPanel({ tileId, element, onChange }: Props) {
+export function ElementPanel({ tileId, element, frameMm, onChange }: Props) {
   const { t } = useTranslation();
-  const { saveAsset } = useUseCases();
+  const { upload } = useAssetActions();
+  const [picking, setPicking] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
   const field = (label: string, value: string, commit: (v: string) => void, area = false) => (
@@ -44,11 +48,9 @@ export function ElementPanel({ tileId, element, onChange }: Props) {
   );
 
   const pickPhoto = async (file: File) => {
-    try {
-      const asset = await saveAsset.execute(await prepareImage(file));
-      if (element.type === 'photo') onChange({ ...element, assetId: asset.id });
-    } catch {
-      toast.error(t('write.imageFailed'));
+    const [asset] = await upload([file]);
+    if (asset && element.type === 'photo') {
+      onChange({ ...element, assetId: asset.id, caption: element.caption || asset.caption || '', ...(asset.credit && { credit: asset.credit }) });
     }
   };
 
@@ -59,9 +61,27 @@ export function ElementPanel({ tileId, element, onChange }: Props) {
       </h3>
       {element.type === 'photo' && (
         <>
-          <Button variant="outline" onClick={() => fileInput.current?.click()}>
-            <ImagePlus /> {t('elements.choosePhoto')}
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button variant="outline" onClick={() => fileInput.current?.click()}>
+              <ImagePlus /> {t('elements.choosePhoto')}
+            </Button>
+            <Button variant="outline" onClick={() => setPicking(true)}>
+              <Library /> {t('photos.fromLibrary')}
+            </Button>
+          </div>
+          {picking && (
+            <AssetPicker
+              onClose={() => setPicking(false)}
+              onPick={(asset) =>
+                onChange({
+                  ...element,
+                  assetId: asset.id,
+                  caption: asset.caption ?? element.caption,
+                  ...(asset.credit && { credit: asset.credit }),
+                })
+              }
+            />
+          )}
           <input
             ref={fileInput}
             type="file"
@@ -77,6 +97,21 @@ export function ElementPanel({ tileId, element, onChange }: Props) {
           />
           {field(t('elements.caption'), element.caption, (caption) =>
             onChange({ ...element, caption }),
+          )}
+          {field(t('photos.credit'), element.credit ?? '', (credit) =>
+            onChange({ ...element, credit }),
+          )}
+          {element.assetId && (
+            <ImageAdjustPanel
+              key={`${tileId}-${element.assetId}`}
+              assetId={element.assetId}
+              adjust={element.adjust}
+              frameMm={frameMm}
+              onChange={(adjust) => {
+                const { adjust: _old, ...rest } = element;
+                onChange(adjust ? { ...rest, adjust } : rest);
+              }}
+            />
           )}
         </>
       )}

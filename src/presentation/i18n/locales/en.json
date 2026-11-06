@@ -7,7 +7,8 @@
     "write": "Write",
     "layout": "Layout",
     "preview": "Preview",
-    "templates": "Templates"
+    "templates": "Templates",
+    "photos": "Photos"
   },
   "edition": {
     "date": "Edition date"
@@ -36,7 +37,8 @@
     "numbers": "Numbered list",
     "image": "Insert image",
     "undo": "Undo",
-    "redo": "Redo"
+    "redo": "Redo",
+    "library": "Insert from photo library"
   },
   "write": {
     "newArticle": "New article",
@@ -325,5 +327,37 @@
     "removeThis": "Remove this continuation",
     "fromInfo": "Continued from page {{page}}",
     "toInfo": "Continues on page {{page}}"
+  },
+  "photos": {
+    "title": "Photo library",
+    "search": "Search by name, credit, caption or tag",
+    "upload": "Upload photos",
+    "allTags": "All",
+    "empty": "No photos yet. Upload some, or drop picture files here.",
+    "noMatch": "No photos match.",
+    "pickTitle": "Choose a photo",
+    "fromLibrary": "From library…",
+    "name": "Name",
+    "credit": "Credit",
+    "caption": "Default caption",
+    "tags": "Tags (comma separated)",
+    "inUse": "In use, remove it from the pages first",
+    "confirmDelete": "Delete this photo from the library?",
+    "delete": "Delete photo",
+    "usedIn_one": "used once",
+    "usedIn_other": "used {{count}} times"
+  },
+  "adjust": {
+    "title": "Crop & adjust",
+    "focalHint": "Click the picture to choose the part that must stay in view.",
+    "zoom": "Zoom",
+    "rotateLeft": "Rotate left",
+    "rotateRight": "Rotate right",
+    "greyscale": "Greyscale",
+    "brightness": "Brightness",
+    "contrast": "Contrast",
+    "ppi": "{{ppi}} ppi at print size",
+    "lowRes": "may print soft",
+    "reset": "Reset"
   }
 }

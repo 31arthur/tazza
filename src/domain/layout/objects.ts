@@ -1,3 +1,4 @@
+import type { ImageAdjust } from '../entities/ImageAdjust';
 import { GRID, liveRectMm } from '../services/PageGeometry';
 import type { HeadlineFont, Paint } from './style';
 
@@ -54,6 +55,7 @@ export interface ImageObject extends ObjectBase {
   readonly kind: 'image';
   readonly assetId?: string;
   readonly fit: 'cover' | 'contain';
+  readonly adjust?: Partial<ImageAdjust>;
 }
 
 export type PageObject = TextObject | ShapeObject | ImageObject;

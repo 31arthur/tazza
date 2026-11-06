@@ -87,7 +87,9 @@ function ObjectView({ object: o }: { object: PageObject }) {
           {o.assetId && (
             <AssetImage
               assetId={o.assetId}
-              style={{ width: '100%', height: '100%', objectFit: o.fit }}
+              adjust={o.adjust}
+              fit={o.fit}
+              style={{ width: '100%', height: '100%' }}
             />
           )}
         </div>

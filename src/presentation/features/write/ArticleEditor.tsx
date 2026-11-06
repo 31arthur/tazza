@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, type ChangeEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { EditorContent, useEditor, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useQueryClient } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ import { detectLanguage } from '@domain/services/detectLanguage';
 import { Input } from '../../components/ui/input';
 import { useUseCases } from '../../hooks/AppContext';
 import { isImageFile, prepareImage } from '../../lib/image';
+import { AssetPicker } from '../assets/AssetPicker';
 import { articlesKey } from '../queries';
 import { bodyToTiptap, tiptapToBody } from './bodyMapper';
 import { EditorToolbar } from './EditorToolbar';
@@ -39,12 +40,13 @@ export function ArticleEditor({ article }: Props) {
 
   const fileInput = useRef<HTMLInputElement>(null);
   const editorRef = useRef<Editor | null>(null);
+  const [picking, setPicking] = useState(false);
 
   const insertImage = useCallback(
     async (file: File) => {
       try {
         const prepared = await prepareImage(file);
-        const asset = await saveAsset.execute(prepared);
+        const asset = await saveAsset.execute({ ...prepared, name: file.name });
         editorRef.current
           ?.chain()
           .focus()
@@ -149,7 +151,22 @@ export function ArticleEditor({ article }: Props) {
         />
       </div>
 
-      {editor && <EditorToolbar editor={editor} onPickImage={() => fileInput.current?.click()} />}
+      {editor && <EditorToolbar editor={editor} onPickImage={() => fileInput.current?.click()} onPickFromLibrary={() => setPicking(true)} />}
+      {picking && (
+        <AssetPicker
+          onClose={() => setPicking(false)}
+          onPick={(asset) =>
+            editorRef.current
+              ?.chain()
+              .focus()
+              .insertContent({
+                type: 'image',
+                attrs: { assetId: asset.id, caption: asset.caption ?? '', credit: asset.credit ?? '' },
+              })
+              .run()
+          }
+        />
+      )}
       <input
         ref={fileInput}
         type="file"

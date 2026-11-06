@@ -1,5 +1,5 @@
 import type { Article } from '../entities/Article';
-import type { Asset } from '../entities/Asset';
+import type { Asset, AssetMeta } from '../entities/Asset';
 import type { Edition } from '../entities/Edition';
 import { NotFoundError } from '../errors/DomainError';
 import type { ArticleRepository } from '../ports/repositories/ArticleRepository';
@@ -20,6 +20,9 @@ export class InMemoryArticleRepository implements ArticleRepository {
   async listByEdition(editionId: string): Promise<Article[]> {
     return [...this.items.values()].filter((a) => a.editionId === editionId);
   }
+  async listAll(): Promise<Article[]> {
+    return [...this.items.values()];
+  }
   async save(article: Article): Promise<void> {
     this.items.set(article.id, article);
   }
@@ -33,6 +36,9 @@ export class InMemoryEditionRepository implements EditionRepository {
   async find(id: string): Promise<Edition | undefined> {
     return this.items.get(id);
   }
+  async list(): Promise<Edition[]> {
+    return [...this.items.values()];
+  }
   async save(edition: Edition): Promise<void> {
     this.items.set(edition.id, edition);
   }
@@ -45,6 +51,16 @@ export class InMemoryAssetRepository implements AssetRepository {
   }
   async getBlob(id: string): Promise<Blob | undefined> {
     return this.items.get(id)?.blob;
+  }
+  async list(): Promise<Asset[]> {
+    return [...this.items.values()].map((i) => i.asset);
+  }
+  async updateMeta(id: string, meta: AssetMeta): Promise<void> {
+    const found = this.items.get(id);
+    if (found) this.items.set(id, { ...found, asset: { ...found.asset, ...meta } });
+  }
+  async delete(id: string): Promise<void> {
+    this.items.delete(id);
   }
 }
 

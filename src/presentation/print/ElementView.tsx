@@ -4,6 +4,7 @@ import type { Leaf } from '@domain/layout/tree';
 import { bodyPt, headlinePt } from '@domain/services/CopyfitEstimator';
 import { detectLanguage } from '@domain/services/detectLanguage';
 import { AssetImage } from './AssetImage';
+import { PhotoCaption } from './PhotoCaption';
 
 interface Props {
   element: Element;
@@ -27,18 +28,12 @@ export function ElementView({ element, cols, leaf }: Props) {
             {element.assetId && (
               <AssetImage
                 assetId={element.assetId}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                adjust={element.adjust}
+                style={{ width: '100%', height: '100%' }}
               />
             )}
           </div>
-          {element.caption.trim() !== '' && (
-            <figcaption
-              lang={detectLanguage(element.caption)}
-              style={{ flex: 'none', fontSize: '7pt', fontStyle: 'italic', marginTop: '0.6mm' }}
-            >
-              {element.caption}
-            </figcaption>
-          )}
+          <PhotoCaption caption={element.caption} credit={element.credit} style={{ flex: 'none' }} />
         </figure>
       );
 
