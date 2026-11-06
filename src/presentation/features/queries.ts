@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import type { Asset, AssetMeta } from '@domain/entities/Asset';
 import type { Edition } from '@domain/entities/Edition';
 import type { Element, ElementKind } from '@domain/layout/element';
 import type { AlignMode, ArrangeOp, ObjectPatch, ObjectTool } from '@domain/layout/objects';
@@ -11,6 +12,7 @@ import type { LeafStyle, Masthead } from '@domain/layout/style';
 import type { SlotRole } from '@domain/layout/tree';
 import type { DropZone } from '@domain/usecases/layout/DropArticle';
 import { useUseCases } from '../hooks/AppContext';
+import { isImageFile, prepareImage } from '../lib/image';
 import { useEditionStore } from '../state/editionStore';
 import { useHistoryStore } from '../state/historyStore';
 
@@ -260,5 +262,57 @@ export function useLibraryActions() {
     saveBrandKit: (masthead: Partial<Masthead>) =>
       run(() => uc.saveBrandKit.execute({ masthead })),
     deleteItem: (id: string) => run(() => uc.deleteLibraryItem.execute({ id })),
+  };
+}
+
+export const assetsKey = ['assets'] as const;
+
+/** The photo library with where-used counts, newest first. */
+export function useAssets() {
+  const { listAssets } = useUseCases();
+  return useQuery({ queryKey: assetsKey, queryFn: () => listAssets.execute() });
+}
+
+/** Uploading, describing and deleting photos; each refreshes the library and toasts errors. */
+export function useAssetActions() {
+  const uc = useUseCases();
+  const queryClient = useQueryClient();
+
+  const refresh = () => queryClient.invalidateQueries({ queryKey: assetsKey });
+
+  return {
+    /** Saves picture files to the library (downscaled when huge); resolves to what was saved. */
+    upload: async (files: readonly File[]): Promise<Asset[]> => {
+      const saved: Asset[] = [];
+      for (const file of files) {
+        if (!isImageFile(file)) continue;
+        try {
+          const prepared = await prepareImage(file);
+          saved.push(await uc.saveAsset.execute({ ...prepared, name: file.name }));
+        } catch (error) {
+          toast.error(messageOf(error));
+        }
+      }
+      await refresh();
+      return saved;
+    },
+    updateMeta: async (id: string, meta: AssetMeta) => {
+      try {
+        await uc.updateAssetMeta.execute({ id, meta });
+        await refresh();
+      } catch (error) {
+        toast.error(messageOf(error));
+      }
+    },
+    remove: async (id: string): Promise<boolean> => {
+      try {
+        await uc.deleteAsset.execute({ id });
+        await refresh();
+        return true;
+      } catch (error) {
+        toast.error(messageOf(error));
+        return false;
+      }
+    },
   };
 }

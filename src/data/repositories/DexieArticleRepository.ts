@@ -18,6 +18,10 @@ export class DexieArticleRepository implements ArticleRepository {
     return records.map(articleFromRecord);
   }
 
+  async listAll(): Promise<Article[]> {
+    return (await this.db.articles.toArray()).map(articleFromRecord);
+  }
+
   async save(article: Article): Promise<void> {
     await this.db.articles.put(articleToRecord(article));
   }

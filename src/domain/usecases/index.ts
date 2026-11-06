@@ -1,4 +1,7 @@
+import type { DeleteAsset } from './asset/DeleteAsset';
 import type { GetAssetBlob } from './asset/GetAssetBlob';
+import type { ListAssets } from './asset/ListAssets';
+import type { UpdateAssetMeta } from './asset/UpdateAssetMeta';
 import type { SaveAsset } from './asset/SaveAsset';
 import type { CreateArticle } from './article/CreateArticle';
 import type { DeleteArticle } from './article/DeleteArticle';
@@ -74,6 +77,9 @@ export interface UseCases {
   loadSampleStories: LoadSampleStories;
   saveAsset: SaveAsset;
   getAssetBlob: GetAssetBlob;
+  listAssets: ListAssets;
+  updateAssetMeta: UpdateAssetMeta;
+  deleteAsset: DeleteAsset;
   addPage: AddPage;
   removePage: RemovePage;
   applyTemplate: ApplyTemplate;

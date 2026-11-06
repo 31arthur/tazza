@@ -37,6 +37,10 @@ export class LoadSampleStories {
         widthPx: image.widthPx,
         heightPx: image.heightPx,
         byteSize: image.blob.size,
+        name: `Sample ${key}`,
+        credit: 'Tazza samples',
+        tags: ['sample', key],
+        createdAt: this.clock.now(),
       };
       await this.assets.put(asset, image.blob);
       assetIds.set(`sample:${key}`, asset.id);

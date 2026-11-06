@@ -6,6 +6,7 @@ import {
   Heading3,
   ImagePlus,
   Italic,
+  Library,
   List,
   ListOrdered,
   Quote,
@@ -20,6 +21,7 @@ import { Separator } from '../../components/ui/separator';
 interface Props {
   editor: Editor;
   onPickImage: () => void;
+  onPickFromLibrary: () => void;
 }
 
 interface Item {
@@ -30,7 +32,7 @@ interface Item {
   run: () => void;
 }
 
-export function EditorToolbar({ editor, onPickImage }: Props) {
+export function EditorToolbar({ editor, onPickImage, onPickFromLibrary }: Props) {
   const { t } = useTranslation();
   const state = useEditorState({
     editor,
@@ -59,7 +61,10 @@ export function EditorToolbar({ editor, onPickImage }: Props) {
       { key: 'bullets', icon: List, active: state.bullets, run: () => editor.chain().focus().toggleBulletList().run() },
       { key: 'numbers', icon: ListOrdered, active: state.numbers, run: () => editor.chain().focus().toggleOrderedList().run() },
     ],
-    [{ key: 'image', icon: ImagePlus, run: onPickImage }],
+    [
+      { key: 'image', icon: ImagePlus, run: onPickImage },
+      { key: 'library', icon: Library, run: onPickFromLibrary },
+    ],
     [
       { key: 'undo', icon: Undo2, disabled: !state.canUndo, run: () => editor.chain().focus().undo().run() },
       { key: 'redo', icon: Redo2, disabled: !state.canRedo, run: () => editor.chain().focus().redo().run() },

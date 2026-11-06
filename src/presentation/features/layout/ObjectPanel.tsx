@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import {
   AlignCenterHorizontal,
   AlignCenterVertical,
@@ -16,11 +16,11 @@ import {
   Copy,
   ImagePlus,
   Italic,
+  Library,
   SendToBack,
   Trash2,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 import {
   ALIGN_MODES,
   type AlignMode,
@@ -33,9 +33,11 @@ import { detectLanguage } from '@domain/services/detectLanguage';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
-import { useUseCases } from '../../hooks/AppContext';
-import { isImageFile, prepareImage } from '../../lib/image';
+import { isImageFile } from '../../lib/image';
 import { cn } from '../../lib/utils';
+import { AssetPicker } from '../assets/AssetPicker';
+import { ImageAdjustPanel } from '../assets/ImageAdjustPanel';
+import { useAssetActions } from '../queries';
 
 interface Props {
   object: PageObject;
@@ -138,17 +140,14 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 /** Contextual inspector for one free object: geometry, alignment, arrangement and appearance. */
 export function ObjectPanel({ object: o, onPatch, onAlign, onArrange, onDuplicate, onRemove }: Props) {
   const { t } = useTranslation();
-  const { saveAsset } = useUseCases();
+  const { upload } = useAssetActions();
+  const [picking, setPicking] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const alignTo = useRef<'page' | 'live'>('live');
 
   const pickPhoto = async (file: File) => {
-    try {
-      const asset = await saveAsset.execute(await prepareImage(file));
-      onPatch({ assetId: asset.id });
-    } catch {
-      toast.error(t('write.imageFailed'));
-    }
+    const [asset] = await upload([file]);
+    if (asset) onPatch({ assetId: asset.id });
   };
 
   const toggle = (active: boolean, label: string, icon: ReactNode, onClick: () => void) => (
@@ -291,9 +290,17 @@ export function ObjectPanel({ object: o, onPatch, onAlign, onArrange, onDuplicat
 
       {o.kind === 'image' && (
         <Section title={t('objects.tools.image')}>
-          <Button variant="outline" onClick={() => fileInput.current?.click()}>
-            <ImagePlus /> {t('elements.choosePhoto')}
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button variant="outline" onClick={() => fileInput.current?.click()}>
+              <ImagePlus /> {t('elements.choosePhoto')}
+            </Button>
+            <Button variant="outline" onClick={() => setPicking(true)}>
+              <Library /> {t('photos.fromLibrary')}
+            </Button>
+          </div>
+          {picking && (
+            <AssetPicker onClose={() => setPicking(false)} onPick={(asset) => onPatch({ assetId: asset.id })} />
+          )}
           <input
             ref={fileInput}
             type="file"
@@ -318,6 +325,15 @@ export function ObjectPanel({ object: o, onPatch, onAlign, onArrange, onDuplicat
               <option value="contain">{t('objects.fitContain')}</option>
             </select>
           </label>
+          {o.assetId && (
+            <ImageAdjustPanel
+              key={`${o.id}-${o.assetId}`}
+              assetId={o.assetId}
+              adjust={o.adjust}
+              frameMm={{ w: o.w, h: o.h }}
+              onChange={(adjust) => onPatch({ adjust: adjust ?? {} })}
+            />
+          )}
         </Section>
       )}
 

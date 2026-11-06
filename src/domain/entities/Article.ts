@@ -1,3 +1,5 @@
+import type { ImageAdjust } from './ImageAdjust';
+
 export type Mark = 'bold' | 'italic' | 'underline';
 
 export interface Inline {
@@ -15,7 +17,14 @@ export type BodyNode =
       readonly ordered: boolean;
       readonly items: readonly (readonly Inline[])[];
     }
-  | { readonly type: 'image'; readonly assetId: string; readonly caption: string };
+  | {
+      readonly type: 'image';
+      readonly assetId: string;
+      readonly caption: string;
+      /** Photographer or agency, printed after the caption. */
+      readonly credit?: string;
+      readonly adjust?: Partial<ImageAdjust>;
+    };
 
 export type ArticleBody = readonly BodyNode[];
 

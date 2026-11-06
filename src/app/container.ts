@@ -11,7 +11,10 @@ import { GetArticle } from '@domain/usecases/article/GetArticle';
 import { ListArticles } from '@domain/usecases/article/ListArticles';
 import { LoadSampleStories } from '@domain/usecases/article/LoadSampleStories';
 import { UpdateArticle } from '@domain/usecases/article/UpdateArticle';
+import { DeleteAsset } from '@domain/usecases/asset/DeleteAsset';
 import { GetAssetBlob } from '@domain/usecases/asset/GetAssetBlob';
+import { ListAssets } from '@domain/usecases/asset/ListAssets';
+import { UpdateAssetMeta } from '@domain/usecases/asset/UpdateAssetMeta';
 import { SaveAsset } from '@domain/usecases/asset/SaveAsset';
 import { GetOrCreateEdition } from '@domain/usecases/edition/GetOrCreateEdition';
 import { RestoreEdition } from '@domain/usecases/edition/RestoreEdition';
@@ -95,8 +98,11 @@ export const createContainer = (): Container => {
     updateArticle: new UpdateArticle(articles, clock),
     deleteArticle: new DeleteArticle(articles, editions),
     loadSampleStories: new LoadSampleStories(articles, assets, ids, clock),
-    saveAsset: new SaveAsset(assets, ids),
+    saveAsset: new SaveAsset(assets, ids, clock),
     getAssetBlob: new GetAssetBlob(assets),
+    listAssets: new ListAssets(assets, articles, editions),
+    updateAssetMeta: new UpdateAssetMeta(assets),
+    deleteAsset: new DeleteAsset(assets, articles, editions),
     addPage: new AddPage(editions, ids),
     removePage: new RemovePage(editions),
     applyTemplate: new ApplyTemplate(articles, editions, ids),

@@ -1,5 +1,6 @@
 import type { JSONContent } from '@tiptap/core';
 import type { ArticleBody, BodyNode, Inline, Mark } from '@domain/entities/Article';
+import type { ImageAdjust } from '@domain/entities/ImageAdjust';
 
 const MARKS: readonly Mark[] = ['bold', 'italic', 'underline'];
 const isMark = (value: string): value is Mark => (MARKS as readonly string[]).includes(value);
@@ -34,7 +35,15 @@ const nodeToTiptap = (node: BodyNode): JSONContent => {
         content: node.items.map((item) => ({ type: 'listItem', content: [paragraph(item)] })),
       };
     case 'image':
-      return { type: 'image', attrs: { assetId: node.assetId, caption: node.caption } };
+      return {
+        type: 'image',
+        attrs: {
+          assetId: node.assetId,
+          caption: node.caption,
+          credit: node.credit ?? '',
+          adjust: node.adjust ?? null,
+        },
+      };
   }
 };
 
@@ -75,7 +84,17 @@ const nodeFromTiptap = (node: JSONContent): BodyNode[] => {
       const assetId = node.attrs?.['assetId'];
       if (typeof assetId !== 'string') return [];
       const caption = node.attrs?.['caption'];
-      return [{ type: 'image', assetId, caption: typeof caption === 'string' ? caption : '' }];
+      const credit = node.attrs?.['credit'];
+      const adjust = node.attrs?.['adjust'];
+      return [
+        {
+          type: 'image',
+          assetId,
+          caption: typeof caption === 'string' ? caption : '',
+          ...(typeof credit === 'string' && credit.trim() !== '' && { credit }),
+          ...(adjust !== null && typeof adjust === 'object' && { adjust: adjust as Partial<ImageAdjust> }),
+        },
+      ];
     }
     default:
       return [];

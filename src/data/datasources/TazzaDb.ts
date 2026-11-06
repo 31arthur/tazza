@@ -26,5 +26,11 @@ export class TazzaDb extends Dexie {
       .upgrade((tx) => tx.table('editions').clear());
     // v3: the library of reusable templates, styles and the brand kit. Nothing else changes.
     this.version(3).stores({ ...STORES, library: 'id, kind, createdAt' });
+    // v4: photos get an index on when they were added, for the photo library.
+    this.version(4).stores({
+      ...STORES,
+      assets: 'id, createdAt',
+      library: 'id, kind, createdAt',
+    });
   }
 }

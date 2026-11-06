@@ -4,6 +4,8 @@ export interface ArticleRepository {
   /** Throws NotFoundError when absent. */
   getById(id: string): Promise<Article>;
   listByEdition(editionId: string): Promise<Article[]>;
+  /** Every article of every edition (used to find where photos are used). */
+  listAll(): Promise<Article[]>;
   save(article: Article): Promise<void>;
   delete(id: string): Promise<void>;
 }
