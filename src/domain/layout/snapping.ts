@@ -18,7 +18,11 @@ export interface Guide {
  * edge, and the edges and centres of the other objects. Moving objects are left out by the
  * caller so they never snap to themselves.
  */
-export const snapTargets = (pageNumber: number, others: readonly PageObject[]): SnapTargets => {
+export const snapTargets = (
+  pageNumber: number,
+  others: readonly PageObject[],
+  customGuides: readonly Guide[] = [],
+): SnapTargets => {
   const live = liveRectMm(pageNumber);
   const columnEdges = Array.from({ length: GRID.columns }, (_, i) => {
     const left = live.x + i * (COLUMN_WIDTH_MM + GRID.gutterMm);
@@ -34,6 +38,8 @@ export const snapTargets = (pageNumber: number, others: readonly PageObject[]): 
     ...columnEdges,
   ];
   const ys = [0, GRID.pageHeightMm / 2, GRID.pageHeightMm, live.y, live.y + live.h];
+
+  for (const g of customGuides) (g.axis === 'x' ? xs : ys).push(g.at);
 
   for (const o of others) {
     if (o.hidden) continue;

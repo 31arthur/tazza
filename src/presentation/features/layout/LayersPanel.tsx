@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Eye, EyeOff, Lock, Unlock } from 'lucide-react';
+import { ChevronDown, ChevronUp, Eye, EyeOff, Link2, Lock, Unlock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ArrangeOp, ObjectPatch, PageObject } from '@domain/layout/objects';
 import { detectLanguage } from '@domain/services/detectLanguage';
@@ -6,8 +6,9 @@ import { cn } from '../../lib/utils';
 
 interface Props {
   objects: readonly PageObject[];
-  selectedId: string | undefined;
-  onSelect: (id: string) => void;
+  selectedIds: readonly string[];
+  /** Shift-click adds to or removes from the selection. */
+  onSelect: (id: string, additive: boolean) => void;
   onPatch: (id: string, patch: ObjectPatch) => void;
   onArrange: (id: string, op: ArrangeOp) => void;
 }
@@ -16,7 +17,7 @@ const label = (o: PageObject): string =>
   o.kind === 'text' ? o.text.split('\n')[0]?.slice(0, 28) || o.name : o.name;
 
 /** Objects on the page, top of the stack first: select, hide, lock and reorder. */
-export function LayersPanel({ objects, selectedId, onSelect, onPatch, onArrange }: Props) {
+export function LayersPanel({ objects, selectedIds, onSelect, onPatch, onArrange }: Props) {
   const { t } = useTranslation();
   const topFirst = [...objects].reverse();
 
@@ -34,17 +35,22 @@ export function LayersPanel({ objects, selectedId, onSelect, onPatch, onArrange 
               key={o.id}
               className={cn(
                 'flex items-center gap-1 rounded px-1 py-0.5 text-sm',
-                o.id === selectedId ? 'bg-accent' : 'hover:bg-muted',
+                selectedIds.includes(o.id) ? 'bg-accent' : 'hover:bg-muted',
               )}
             >
               <button
                 type="button"
-                onClick={() => onSelect(o.id)}
+                onClick={(e) => onSelect(o.id, e.shiftKey)}
                 lang={detectLanguage(label(o))}
                 className={cn('min-w-0 flex-1 truncate text-left', o.hidden && 'text-muted-foreground line-through')}
               >
                 {label(o)}
               </button>
+              {o.groupId !== undefined && (
+                <span title={t('objects.group')} aria-label={t('objects.group')}>
+                  <Link2 className="size-3.5 text-muted-foreground" />
+                </span>
+              )}
               <button
                 type="button"
                 aria-label={t('objects.moveUp')}

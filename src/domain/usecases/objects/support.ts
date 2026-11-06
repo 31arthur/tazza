@@ -1,16 +1,24 @@
 import { findPage, replacePage, type Edition } from '../../entities/Edition';
 import { LayoutError, NotFoundError } from '../../errors/DomainError';
 import type { PageObject } from '../../layout/objects';
+import { expandGroups } from '../../layout/selection';
 import type { EditionRepository } from '../../ports/repositories/EditionRepository';
 import type { PageRef } from '../layout/support';
-
-export const objectsOf = (edition: Edition, pageNumber: number): readonly PageObject[] =>
-  findPage(edition, pageNumber).objects ?? [];
 
 export const requireObject = (objects: readonly PageObject[], id: string): PageObject => {
   const found = objects.find((o) => o.id === id);
   if (!found) throw new LayoutError('Object not found');
   return found;
+};
+
+/** The chosen objects plus the rest of their groups, in stacking order. Throws if one is missing. */
+export const selectionOf = (
+  objects: readonly PageObject[],
+  ids: readonly string[],
+): PageObject[] => {
+  ids.forEach((id) => requireObject(objects, id));
+  const all = new Set(expandGroups(objects, ids));
+  return objects.filter((o) => all.has(o.id));
 };
 
 /** Loads an edition, replaces one page's free objects, and saves. */

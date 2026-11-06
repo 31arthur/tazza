@@ -97,6 +97,15 @@ A page can also hold **free objects**: text boxes, rectangles, ellipses, lines a
 - **Layers panel**: top of the stack first; select, move up/down, hide, lock.
 - **Keyboard**: arrows nudge 1 mm (Shift 10 mm), Ctrl+D duplicates, [ and ] reorder (Shift for front/back), Delete removes, Esc deselects. Every change is undoable.
 
+### Selection, groups, rulers and guides
+
+- **Select several**: drag a marquee over empty canvas, Shift-click objects (or layers) to add or remove, or Ctrl+A for all. A click on a grouped object selects the whole group.
+- **Move together**: dragging any selected object moves the whole selection as one block, snapping by its combined bounds. Resize and rotate handles appear for a single ungrouped object.
+- **Group / ungroup**: Ctrl+G and Ctrl+Shift+G (or the buttons). Groups duplicate as new groups.
+- **Align** to the selection, the margins or the page edges, and **distribute** three or more objects evenly (horizontal or vertical); locked objects are skipped.
+- **Rulers** run along the top and left of the page in millimetres. **Drag from a ruler** to pull out a guide; drag a guide to move it, or drag it off the page to delete it. Objects snap to ruler guides. Guides are saved per page, are never printed, and Clear ruler guides removes them all.
+- All of these are single undo steps.
+
 ### Templates
 
 Templates are data (`domain/layout/templates.ts`): front page (8, 5 or 3 stories), inner page (6, 4 or 2 stories) and single story. Slot **priority** decides which story goes where: the heaviest stories take priority 1. **Auto layout** picks, for each page, the fullest template whose stories still fit (fill ≤ 100%), adds pages as needed and leaves no empty tiles.

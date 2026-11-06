@@ -14,13 +14,14 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { placedArticleIds } from '@domain/entities/Edition';
 import { pageFill } from '@domain/layout/fit';
-import type { ObjectPatch } from '@domain/layout/objects';
 import { resolveMasthead } from '@domain/layout/style';
 import { TEMPLATE_IDS, type TemplateId } from '@domain/layout/templates';
 import { layoutRects, leavesOf, type SlotRole } from '@domain/layout/tree';
+import { GRID } from '@domain/services/PageGeometry';
 import { detectLanguage } from '@domain/services/detectLanguage';
 import { Button } from '../../components/ui/button';
 import { useFitScale } from '../../hooks/useFitScale';
+import { PX_PER_MM } from '../../lib/units';
 import { cn } from '../../lib/utils';
 import { PageRenderer } from '../../print/PageRenderer';
 import { ScaledPage } from '../../print/ScaledPage';
@@ -38,11 +39,15 @@ import { ElementPalette } from './ElementPalette';
 import { ElementPanel } from './ElementPanel';
 import { LayersPanel } from './LayersPanel';
 import { MastheadPanel } from './MastheadPanel';
+import { MultiPanel } from './MultiPanel';
 import { ObjectPalette } from './ObjectPalette';
 import { ObjectPanel } from './ObjectPanel';
 import { ObjectsEditor } from './ObjectsEditor';
+import { GuidesLayer, RULER_PX, Ruler } from './Rulers';
 import { StylePanel } from './StylePanel';
+import { useGuideDrag } from './useGuideDrag';
 import { useLayoutDnd, type DragSource, type DropTarget } from './useLayoutDnd';
+import { useObjectSelection } from './useObjectSelection';
 
 const ROLES: SlotRole[] = ['banner', 'lead', 'story', 'box', 'brief', 'teaser'];
 
@@ -80,8 +85,6 @@ export function LayoutPage() {
   const [zoom, setZoom] = useState(1);
   const [pageNumber, setPageNumber] = useState(1);
   const [selectedLeafId, setSelectedLeafId] = useState<string | undefined>();
-  const [selectedObjectId, setSelectedObjectId] = useState<string | undefined>();
-  const [objectDraft, setObjectDraft] = useState<{ id: string; patch: ObjectPatch } | undefined>();
   const [guides, setGuides] = useState(false);
   const { undo, redo, canUndo, canRedo } = useUndoRedo();
   const scale = fit * zoom;
@@ -116,15 +119,24 @@ export function LayoutPage() {
     },
   });
 
-  const selectedObject = page?.objects?.find((o) => o.id === selectedObjectId);
+  const objs = useObjectSelection({ page, scale, pageElement, actions });
+  const rulerGuides = page?.guides ?? [];
+  const guideDrag = useGuideDrag({
+    pageElement,
+    scale,
+    guides: rulerGuides,
+    onCommit: (next) => {
+      if (page) void actions.setGuides(page.number, next);
+    },
+  });
 
   const selectLeaf = (id: string | undefined) => {
     setSelectedLeafId(id);
-    setSelectedObjectId(undefined);
+    objs.clear();
   };
-  const selectObject = (id: string | undefined) => {
-    setSelectedObjectId(id);
+  const selectObjects = (ids: string[]) => {
     setSelectedLeafId(undefined);
+    objs.select(ids);
   };
 
   // Keyboard shortcuts, as in a desktop layout tool. They never fire while typing in a field.
@@ -136,38 +148,7 @@ export function LayoutPage() {
       if (typing) return;
       const mod = e.ctrlKey || e.metaKey;
       const key = e.key.toLowerCase();
-      if (selectedObject && page && !mod) {
-        const step = e.shiftKey ? 10 : 1;
-        const nudge: Record<string, ObjectPatch> = {
-          ArrowLeft: { x: selectedObject.x - step },
-          ArrowRight: { x: selectedObject.x + step },
-          ArrowUp: { y: selectedObject.y - step },
-          ArrowDown: { y: selectedObject.y + step },
-        };
-        const patch = nudge[e.key];
-        if (patch && !selectedObject.locked) {
-          e.preventDefault();
-          void actions.updateObject(page.number, selectedObject.id, patch);
-          return;
-        }
-        if (e.key === 'Delete' || e.key === 'Backspace') {
-          e.preventDefault();
-          void actions.removeObject(page.number, selectedObject.id);
-          setSelectedObjectId(undefined);
-          return;
-        }
-        if (e.key === ']' || e.key === '[') {
-          const forward = e.key === ']';
-          const op = e.shiftKey ? (forward ? 'front' : 'back') : forward ? 'forward' : 'backward';
-          void actions.reorderObject(page.number, selectedObject.id, op);
-          return;
-        }
-      }
-      if (selectedObject && page && mod && key === 'd') {
-        e.preventDefault();
-        void actions.duplicateObject(page.number, selectedObject.id).then((id) => id && selectObject(id));
-        return;
-      }
+      if (objs.handleKey(e)) return;
       if (mod && key === 'z') {
         e.preventDefault();
         void (e.shiftKey ? redo() : undo());
@@ -176,7 +157,7 @@ export function LayoutPage() {
         void redo();
       } else if (e.key === 'Escape') {
         setSelectedLeafId(undefined);
-        setSelectedObjectId(undefined);
+        objs.clear();
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedLeafId && page) {
         e.preventDefault();
         void (e.shiftKey
@@ -208,14 +189,13 @@ export function LayoutPage() {
   const goToPage = (n: number) => {
     setPageNumber(n);
     setSelectedLeafId(undefined);
-    setSelectedObjectId(undefined);
-    setObjectDraft(undefined);
+    objs.clear();
   };
 
   const pageObjects = page.objects ?? [];
   const addObject = async (tool: Parameters<typeof actions.addObject>[1]) => {
     const id = await actions.addObject(page.number, tool);
-    if (id) selectObject(id);
+    if (id) selectObjects([id]);
   };
 
   return (
@@ -264,10 +244,13 @@ export function LayoutPage() {
         <ObjectPalette onAdd={(tool) => void addObject(tool)} />
         <LayersPanel
           objects={pageObjects}
-          selectedId={selectedObjectId}
-          onSelect={selectObject}
+          selectedIds={objs.selectedIds}
+          onSelect={(id, additive) => {
+            setSelectedLeafId(undefined);
+            objs.pick(id, additive);
+          }}
           onPatch={(id, patch) => void actions.updateObject(page.number, id, patch)}
-          onArrange={(id, op) => void actions.reorderObject(page.number, id, op)}
+          onArrange={(id, op) => void actions.reorderObjects(page.number, [id], op)}
         />
         <h2 className="px-3 pt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {t('layout.unplaced')} ({unplaced.length})
@@ -380,6 +363,15 @@ export function LayoutPage() {
             >
               <Columns3 />
             </Button>
+            {rulerGuides.length > 0 && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => void actions.setGuides(page.number, [])}
+              >
+                {t('objects.clearGuides')}
+              </Button>
+            )}
           </div>
           {hasStories && (
             <span
@@ -413,19 +405,29 @@ export function LayoutPage() {
         <div
           ref={ref}
           className="flex-1 overflow-auto bg-neutral-200 p-8"
-          onPointerDown={() => {
+          onPointerDown={(e) => {
             setSelectedLeafId(undefined);
-            setSelectedObjectId(undefined);
+            objs.startMarquee(e, e.shiftKey);
           }}
         >
-          <div className="mx-auto w-fit">
+          <div
+            className="mx-auto"
+            style={{
+              position: 'relative',
+              width: GRID.pageWidthMm * PX_PER_MM * scale + RULER_PX,
+              paddingLeft: RULER_PX,
+              paddingTop: RULER_PX,
+            }}
+          >
+            <Ruler axis="x" scale={scale} onStartGuide={(axis, e) => guideDrag.start(axis, null, e)} />
+            <Ruler axis="y" scale={scale} onStartGuide={(axis, e) => guideDrag.start(axis, null, e)} />
             <ScaledPage scale={scale} innerRef={setPageNode}>
               <PageRenderer
                 page={page}
                 editionId={editionId}
                 masthead={resolveMasthead(edition.masthead)}
                 articles={articles}
-                objectsDraft={objectDraft}
+                objectsDraft={objs.draft}
                 renderLeaf={(args) => (
                   <EditableLeaf
                     {...args}
@@ -460,12 +462,35 @@ export function LayoutPage() {
                         pageNumber={page.number}
                         scale={scale}
                         pageElement={pageElement}
-                        selectedId={selectedObjectId}
-                        draft={objectDraft}
-                        onSelect={selectObject}
-                        onDraft={setObjectDraft}
-                        onCommit={(id, patch) => void actions.updateObject(page.number, id, patch)}
+                        customGuides={rulerGuides}
+                        selectedIds={objs.selectedIds}
+                        draft={objs.draft}
+                        onSelect={selectObjects}
+                        onDraft={objs.setDraft}
+                        onCommit={(updates) => void actions.updateObjects(page.number, updates)}
                       />
+                      <GuidesLayer
+                        guides={rulerGuides}
+                        draft={guideDrag.draft}
+                        scale={scale}
+                        onStartGuide={(axis, index, e) => guideDrag.start(axis, index, e)}
+                      />
+                      {objs.marquee && (
+                        <div
+                          aria-hidden
+                          style={{
+                            position: 'absolute',
+                            left: `${objs.marquee.x}mm`,
+                            top: `${objs.marquee.y}mm`,
+                            width: `${objs.marquee.w}mm`,
+                            height: `${objs.marquee.h}mm`,
+                            background: 'rgba(37,99,235,0.12)',
+                            border: '0.3mm dashed #2563eb',
+                            pointerEvents: 'none',
+                            zIndex: 9,
+                          }}
+                        />
+                      )}
                       {target && targetRect && (
                         <div
                           aria-hidden
@@ -498,18 +523,42 @@ export function LayoutPage() {
 
       {/* Right: inspector */}
       <aside className="min-h-0 overflow-y-auto border-l bg-card p-3">
-        {selectedObject ? (
-          <ObjectPanel
-            object={selectedObject}
-            onPatch={(patch) => void actions.updateObject(page.number, selectedObject.id, patch)}
-            onAlign={(mode, to) => void actions.alignObject(page.number, selectedObject.id, mode, to)}
-            onArrange={(op) => void actions.reorderObject(page.number, selectedObject.id, op)}
+        {objs.selected.length > 1 ? (
+          <MultiPanel
+            objects={objs.selected}
+            onAlign={(mode, to) => void actions.alignObjects(page.number, objs.selectedIds, mode, to)}
+            onDistribute={(axis) =>
+              void actions.distributeObjects(page.number, objs.selectedIds, axis)
+            }
+            onGroup={() => void actions.groupObjects(page.number, objs.selectedIds)}
+            onUngroup={() => void actions.ungroupObjects(page.number, objs.selectedIds)}
+            onArrange={(op) => void actions.reorderObjects(page.number, objs.selectedIds, op)}
             onDuplicate={() =>
-              void actions.duplicateObject(page.number, selectedObject.id).then((id) => id && selectObject(id))
+              void actions
+                .duplicateObjects(page.number, objs.selectedIds)
+                .then((ids) => ids && objs.select(ids))
             }
             onRemove={() => {
-              void actions.removeObject(page.number, selectedObject.id);
-              setSelectedObjectId(undefined);
+              void actions.removeObjects(page.number, objs.selectedIds);
+              objs.clear();
+            }}
+          />
+        ) : objs.selected[0] ? (
+          <ObjectPanel
+            object={objs.selected[0]}
+            onPatch={(patch) =>
+              void actions.updateObject(page.number, objs.selectedIds[0] ?? '', patch)
+            }
+            onAlign={(mode, to) => void actions.alignObjects(page.number, objs.selectedIds, mode, to)}
+            onArrange={(op) => void actions.reorderObjects(page.number, objs.selectedIds, op)}
+            onDuplicate={() =>
+              void actions
+                .duplicateObjects(page.number, objs.selectedIds)
+                .then((ids) => ids && objs.select(ids))
+            }
+            onRemove={() => {
+              void actions.removeObjects(page.number, objs.selectedIds);
+              objs.clear();
             }}
           />
         ) : selectedLeaf ? (

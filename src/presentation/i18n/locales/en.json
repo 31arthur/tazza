@@ -100,7 +100,7 @@
     "undo": "Undo",
     "redo": "Redo",
     "guides": "Column guides",
-    "shortcuts": "Shortcuts: Ctrl+Z undo · Ctrl+Y redo · Delete take story out · Shift+Delete delete space · Esc deselect · G guides · + / - zoom"
+    "shortcuts": "Shortcuts: Ctrl+Z undo · Ctrl+Y redo · Ctrl+A select all objects · Ctrl+G group · Ctrl+D duplicate · arrows nudge · Delete remove · Esc deselect · G guides · + / - zoom"
   },
   "preview": {
     "print": "Print / Save as PDF",
@@ -249,6 +249,20 @@
       "tint-pink": "Pink tint",
       "tint-green": "Green tint",
       "tint-grey": "Grey tint"
-    }
+    },
+    "group": "Group",
+    "groupAction": "Group",
+    "ungroup": "Ungroup",
+    "selected": "{{count}} objects selected",
+    "distributeH": "Distribute horizontally",
+    "distributeV": "Distribute vertically",
+    "alignTargets": {
+      "selection": "To selection",
+      "live": "Inside margins",
+      "page": "Page edges"
+    },
+    "rulers": "Rulers and guides",
+    "clearGuides": "Clear ruler guides",
+    "marqueeHint": "Drag on empty space to select several objects. Shift-click adds or removes."
   }
 }

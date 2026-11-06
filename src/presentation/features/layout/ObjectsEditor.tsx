@@ -1,11 +1,13 @@
 import { useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { applyObjectPatch, type ObjectPatch, type PageObject } from '@domain/layout/objects';
+import { boundsOf, expandGroups, type IdPatch } from '@domain/layout/selection';
 import { snapEdge, snapMove, snapTargets, type Guide } from '@domain/layout/snapping';
 import { PX_PER_MM } from '../../lib/units';
 import { objectBox } from '../../print/ObjectsLayer';
 
 type Handle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
 type Mode = { kind: 'move' } | { kind: 'resize'; handle: Handle } | { kind: 'rotate' };
+export type ObjectDraft = ReadonlyMap<string, ObjectPatch>;
 
 const HANDLES: Record<Handle, { left: string; top: string; cursor: string }> = {
   nw: { left: '0%', top: '0%', cursor: 'nwse-resize' },
@@ -29,24 +31,28 @@ interface Props {
   scale: number;
   /** The real-size page element; its on-screen box converts pointer positions to millimetres. */
   pageElement: HTMLElement | null;
-  selectedId: string | undefined;
-  draft: { id: string; patch: ObjectPatch } | undefined;
-  onSelect: (id: string | undefined) => void;
-  onDraft: (draft: { id: string; patch: ObjectPatch } | undefined) => void;
-  onCommit: (id: string, patch: ObjectPatch) => void;
+  /** Ruler guides the designer placed; objects snap to them too. */
+  customGuides: readonly Guide[];
+  selectedIds: readonly string[];
+  draft: ObjectDraft | undefined;
+  onSelect: (ids: string[]) => void;
+  onDraft: (draft: ObjectDraft | undefined) => void;
+  onCommit: (updates: IdPatch[]) => void;
 }
 
 /**
- * Direct manipulation of free objects: click to select, drag to move with smart-guide snapping,
- * drag a handle to resize, drag the round handle to rotate (Shift snaps to 15 degrees).
- * Hold Alt to turn snapping off. Resizing is offered for unrotated objects.
+ * Direct manipulation of free objects. Click selects (Shift adds or removes, and a click on a
+ * grouped object selects the whole group); dragging moves everything selected with smart-guide
+ * snapping; a single ungrouped object also gets eight resize handles and a rotate handle
+ * (Shift snaps to 15 degrees). Hold Alt to turn snapping off.
  */
 export function ObjectsEditor({
   objects,
   pageNumber,
   scale,
   pageElement,
-  selectedId,
+  customGuides,
+  selectedIds,
   draft,
   onSelect,
   onDraft,
@@ -58,11 +64,26 @@ export function ObjectsEditor({
   const begin = (e: ReactPointerEvent, object: PageObject, mode: Mode) => {
     if (e.button !== 0) return;
     e.stopPropagation();
-    onSelect(object.id);
-    const page = pageElement;
-    if (object.locked || !page) return;
 
-    const origin = page.getBoundingClientRect();
+    if (e.shiftKey && mode.kind === 'move') {
+      const members = expandGroups(objects, [object.id]);
+      onSelect(
+        selectedIds.includes(object.id)
+          ? selectedIds.filter((id) => !members.includes(id))
+          : [...new Set([...selectedIds, ...members])],
+      );
+      return;
+    }
+
+    const alreadySelected = selectedIds.includes(object.id);
+    const selection = alreadySelected ? [...selectedIds] : expandGroups(objects, [object.id]);
+    if (!alreadySelected) onSelect(selection);
+
+    const moving = objects.filter((o) => selection.includes(o.id) && !o.locked);
+    if (moving.length === 0 || !pageElement) return;
+    if (mode.kind !== 'move' && moving.length !== 1) return;
+
+    const origin = pageElement.getBoundingClientRect();
     const toMm = (clientX: number, clientY: number) => ({
       x: (clientX - origin.left) / k,
       y: (clientY - origin.top) / k,
@@ -71,10 +92,11 @@ export function ObjectsEditor({
     const startPx = { x: e.clientX, y: e.clientY };
     const targets = snapTargets(
       pageNumber,
-      objects.filter((o) => o.id !== object.id),
+      objects.filter((o) => !selection.includes(o.id)),
+      customGuides,
     );
     const threshold = 6 / k;
-    let latest: ObjectPatch | undefined;
+    let latest: ObjectDraft | undefined;
 
     const onMove = (ev: PointerEvent) => {
       if (!latest && Math.hypot(ev.clientX - startPx.x, ev.clientY - startPx.y) < CLICK_SLOP_PX) {
@@ -84,43 +106,49 @@ export function ObjectsEditor({
       const dx = p.x - start.x;
       const dy = p.y - start.y;
       const snapping = !ev.altKey;
-      let patch: ObjectPatch;
+      const next = new Map<string, ObjectPatch>();
       let lines: Guide[] = [];
 
       if (mode.kind === 'move') {
-        const raw = { x: object.x + dx, y: object.y + dy, w: object.w, h: object.h };
+        // The whole selection moves as one block and snaps by its combined bounds.
+        const bounds = boundsOf(moving);
+        if (!bounds) return;
+        const raw = { x: bounds.x + dx, y: bounds.y + dy, w: bounds.w, h: bounds.h };
         const snapped = snapping ? snapMove(raw, targets, threshold) : undefined;
-        patch = { x: snapped?.x ?? raw.x, y: snapped?.y ?? raw.y };
+        const shiftX = (snapped?.x ?? raw.x) - bounds.x;
+        const shiftY = (snapped?.y ?? raw.y) - bounds.y;
+        for (const o of moving) next.set(o.id, { x: o.x + shiftX, y: o.y + shiftY });
         lines = [...(snapped?.guides ?? [])];
       } else if (mode.kind === 'resize') {
-        let left = object.x;
-        let top = object.y;
-        let right = object.x + object.w;
-        let bottom = object.y + object.h;
+        const o = object;
+        let left = o.x;
+        let top = o.y;
+        let right = o.x + o.w;
+        let bottom = o.y + o.h;
         const edge = (value: number, axis: 'x' | 'y') => {
           if (!snapping) return value;
           const hit = snapEdge(value, axis === 'x' ? targets.xs : targets.ys, threshold);
           if (hit.guide !== undefined) lines.push({ axis, at: hit.guide });
           return hit.value;
         };
-        if (mode.handle.includes('w')) left = edge(object.x + dx, 'x');
-        if (mode.handle.includes('e')) right = edge(object.x + object.w + dx, 'x');
-        if (mode.handle.includes('n')) top = edge(object.y + dy, 'y');
-        if (mode.handle.includes('s')) bottom = edge(object.y + object.h + dy, 'y');
-        if (right - left < MIN_SIZE_MM) [left, right] = [object.x, object.x + object.w];
-        if (bottom - top < MIN_SIZE_MM) [top, bottom] = [object.y, object.y + object.h];
-        patch = { x: left, y: top, w: right - left, h: bottom - top };
+        if (mode.handle.includes('w')) left = edge(o.x + dx, 'x');
+        if (mode.handle.includes('e')) right = edge(o.x + o.w + dx, 'x');
+        if (mode.handle.includes('n')) top = edge(o.y + dy, 'y');
+        if (mode.handle.includes('s')) bottom = edge(o.y + o.h + dy, 'y');
+        if (right - left < MIN_SIZE_MM) [left, right] = [o.x, o.x + o.w];
+        if (bottom - top < MIN_SIZE_MM) [top, bottom] = [o.y, o.y + o.h];
+        next.set(o.id, { x: left, y: top, w: right - left, h: bottom - top });
       } else {
         const cx = object.x + object.w / 2;
         const cy = object.y + object.h / 2;
         let angle = (Math.atan2(p.y - cy, p.x - cx) * 180) / Math.PI + 90;
         if (ev.shiftKey) angle = Math.round(angle / 15) * 15;
-        patch = { rotation: angle };
+        next.set(object.id, { rotation: angle });
       }
 
-      latest = patch;
+      latest = next;
       setGuides(lines);
-      onDraft({ id: object.id, patch });
+      onDraft(next);
     };
 
     const finish = (commit: boolean) => {
@@ -129,7 +157,9 @@ export function ObjectsEditor({
       window.removeEventListener('pointercancel', onCancel);
       setGuides([]);
       onDraft(undefined);
-      if (commit && latest) onCommit(object.id, latest);
+      if (commit && latest) {
+        onCommit([...latest].map(([id, patch]) => ({ id, patch })));
+      }
     };
     const onUp = () => finish(true);
     const onCancel = () => finish(false);
@@ -139,13 +169,18 @@ export function ObjectsEditor({
     window.addEventListener('pointercancel', onCancel);
   };
 
-  const shown = (o: PageObject) => (draft && draft.id === o.id ? applyObjectPatch(o, draft.patch) : o);
-  const selected = objects.find((o) => o.id === selectedId && !o.hidden);
+  const shown = (o: PageObject) => {
+    const patch = draft?.get(o.id);
+    return patch ? applyObjectPatch(o, patch) : o;
+  };
+  const chosen = objects.filter((o) => selectedIds.includes(o.id) && !o.hidden).map(shown);
+  const single = chosen.length === 1 && chosen[0]?.groupId === undefined ? chosen[0] : undefined;
+  const block = chosen.length > 1 || (chosen.length === 1 && !single) ? boundsOf(chosen) : undefined;
   const handleMm = 9 / k;
   const rotateOffsetMm = 24 / k;
 
   return (
-    <div aria-hidden={false} style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 7 }}>
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 7 }}>
       {objects
         .filter((o) => !o.hidden)
         .map((o) => (
@@ -162,20 +197,49 @@ export function ObjectsEditor({
           />
         ))}
 
-      {selected && (
+      {/* Several objects, or a group: one dashed box around all of them. */}
+      {chosen.map((o) =>
+        single ? null : (
+          <div
+            key={`mark-${o.id}`}
+            style={{
+              ...objectBox(o),
+              outline: `${1 / k}mm solid ${SELECT_COLOUR}`,
+              pointerEvents: 'none',
+            }}
+          />
+        ),
+      )}
+      {block && (
+        <div
+          data-selection-bounds
+          style={{
+            position: 'absolute',
+            left: `${block.x}mm`,
+            top: `${block.y}mm`,
+            width: `${block.w}mm`,
+            height: `${block.h}mm`,
+            outline: `${1.5 / k}mm dashed ${SELECT_COLOUR}`,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+
+      {single && (
         <div
           style={{
-            ...objectBox(shown(selected)),
+            ...objectBox(single),
             outline: `${1.5 / k}mm solid ${SELECT_COLOUR}`,
             pointerEvents: 'none',
           }}
         >
-          {!selected.locked && selected.rotation === 0 &&
+          {!single.locked &&
+            single.rotation === 0 &&
             (Object.keys(HANDLES) as Handle[]).map((handle) => (
               <div
                 key={handle}
                 data-handle={handle}
-                onPointerDown={(e) => begin(e, selected, { kind: 'resize', handle })}
+                onPointerDown={(e) => begin(e, single, { kind: 'resize', handle })}
                 style={{
                   position: 'absolute',
                   left: HANDLES[handle].left,
@@ -191,10 +255,10 @@ export function ObjectsEditor({
                 }}
               />
             ))}
-          {!selected.locked && (
+          {!single.locked && (
             <div
               data-handle="rotate"
-              onPointerDown={(e) => begin(e, selected, { kind: 'rotate' })}
+              onPointerDown={(e) => begin(e, single, { kind: 'rotate' })}
               style={{
                 position: 'absolute',
                 left: '50%',

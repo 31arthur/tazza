@@ -22,6 +22,8 @@ interface ObjectBase {
   readonly rotation: number;
   readonly locked: boolean;
   readonly hidden: boolean;
+  /** Objects sharing a group id are selected and moved together. */
+  readonly groupId?: string;
 }
 
 export interface TextObject extends ObjectBase {
@@ -221,3 +223,4 @@ export const alignPosition = (
       return { y: reference.y + reference.h - rect.h };
   }
 };
+
