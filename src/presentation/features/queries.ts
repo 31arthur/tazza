@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { Edition } from '@domain/entities/Edition';
 import type { Element, ElementKind } from '@domain/layout/element';
+import type { AlignMode, ArrangeOp, ObjectPatch, ObjectTool } from '@domain/layout/objects';
 import type { TemplateId } from '@domain/layout/templates';
 import type { LeafStyle, Masthead } from '@domain/layout/style';
 import type { SlotRole } from '@domain/layout/tree';
@@ -89,6 +90,33 @@ export function useLayoutActions() {
     ) => apply(() => uc.addElement.execute({ editionId, pageNumber, ...request })),
     updateElement: (pageNumber: number, leafId: string, element: Element) =>
       apply(() => uc.updateElement.execute({ editionId, pageNumber, leafId, element })),
+    /** Adds an object; resolves to its id so the caller can select it. */
+    addObject: async (pageNumber: number, tool: ObjectTool): Promise<string | undefined> => {
+      let id: string | undefined;
+      const ok = await apply(async () => {
+        const result = await uc.addObject.execute({ editionId, pageNumber, tool });
+        id = result.objectId;
+        return result.edition;
+      });
+      return ok ? id : undefined;
+    },
+    duplicateObject: async (pageNumber: number, objectId: string): Promise<string | undefined> => {
+      let id: string | undefined;
+      const ok = await apply(async () => {
+        const result = await uc.duplicateObject.execute({ editionId, pageNumber, objectId });
+        id = result.objectId;
+        return result.edition;
+      });
+      return ok ? id : undefined;
+    },
+    updateObject: (pageNumber: number, objectId: string, patch: ObjectPatch) =>
+      apply(() => uc.updateObject.execute({ editionId, pageNumber, objectId, patch })),
+    removeObject: (pageNumber: number, objectId: string) =>
+      apply(() => uc.removeObject.execute({ editionId, pageNumber, objectId })),
+    reorderObject: (pageNumber: number, objectId: string, op: ArrangeOp) =>
+      apply(() => uc.reorderObject.execute({ editionId, pageNumber, objectId, op })),
+    alignObject: (pageNumber: number, objectId: string, mode: AlignMode, to: 'page' | 'live') =>
+      apply(() => uc.alignObject.execute({ editionId, pageNumber, objectId, mode, to })),
     autoFitPage: (pageNumber: number) =>
       apply(() => uc.autoFitPage.execute({ editionId, pageNumber })),
     clearSlot: (pageNumber: number, leafId: string) =>

@@ -2,10 +2,12 @@ import type { ReactNode } from 'react';
 import type { Article } from '@domain/entities/Article';
 import type { Page } from '@domain/entities/Edition';
 import { layoutRects, type PlacedLeaf } from '@domain/layout/tree';
+import type { ObjectPatch } from '@domain/layout/objects';
 import type { Masthead as MastheadSettings } from '@domain/layout/style';
 import { GRID } from '@domain/services/PageGeometry';
 import { ArticleView } from './ArticleView';
 import { ElementView } from './ElementView';
+import { ObjectsLayer } from './ObjectsLayer';
 import { LeafFrame } from './LeafFrame';
 import { Folio, Masthead, RunningHeader } from './PageChrome';
 
@@ -21,6 +23,8 @@ interface Props {
   articles: ReadonlyMap<string, Article>;
   /** Override how a tile is drawn (the layout canvas adds selection and dragging). */
   renderLeaf?: ((args: RenderLeafArgs) => ReactNode) | undefined;
+  /** An unsaved change to one free object while it is being dragged or resized. */
+  objectsDraft?: { id: string; patch: ObjectPatch } | undefined;
   /** Drawn on top of the page in page coordinates (drop highlights, dividers). */
   overlay?: ((leaves: readonly PlacedLeaf[]) => ReactNode) | undefined;
 }
@@ -43,7 +47,15 @@ export function PrintLeaf({ placed, article }: RenderLeafArgs) {
  * Draws one A3 page at its real size (297 x 420 mm). The layout canvas, the preview and the
  * print output all use this component, so what you see is what is printed.
  */
-export function PageRenderer({ page, editionId, masthead, articles, renderLeaf, overlay }: Props) {
+export function PageRenderer({
+  page,
+  editionId,
+  masthead,
+  articles,
+  renderLeaf,
+  objectsDraft,
+  overlay,
+}: Props) {
   const { leaves } = layoutRects(page.layout, page.number);
   const draw = renderLeaf ?? PrintLeaf;
   return (
@@ -70,6 +82,7 @@ export function PageRenderer({ page, editionId, masthead, articles, renderLeaf, 
           })}
         </div>
       ))}
+      <ObjectsLayer objects={page.objects ?? []} draft={objectsDraft} />
       {overlay?.(leaves)}
       <Folio pageNumber={page.number} printMarks={masthead.printMarks} />
     </div>

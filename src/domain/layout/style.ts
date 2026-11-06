@@ -24,6 +24,22 @@ export const TINTS = {
 export type TintName = keyof typeof TINTS | 'none';
 export const TINT_NAMES: TintName[] = ['none', 'yellow', 'blue', 'pink', 'green', 'grey'];
 
+/** Fill and stroke colours for free objects: any ink, any tint, white, or nothing. */
+export type Paint = AccentName | `tint-${Exclude<TintName, 'none'>}` | 'white' | 'none';
+export const PAINTS: readonly Paint[] = [
+  'none',
+  'white',
+  ...ACCENT_NAMES,
+  ...(Object.keys(TINTS) as (keyof typeof TINTS)[]).map((t) => `tint-${t}` as const),
+];
+
+export const paintColor = (paint: Paint): string | undefined => {
+  if (paint === 'none') return undefined;
+  if (paint === 'white') return '#ffffff';
+  if (paint.startsWith('tint-')) return TINTS[paint.slice(5) as keyof typeof TINTS];
+  return PALETTE[paint as AccentName];
+};
+
 /** Rule weights in mm: hairline between columns, standard between stories, heavy under banners. */
 export const RULE_MM = { hairline: 0.2, standard: 0.3, heavy: 0.8 } as const;
 
