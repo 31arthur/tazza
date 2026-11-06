@@ -52,10 +52,12 @@ export interface DropRequest {
 }
 
 /** Layout commands: run the use case, refresh the cached edition, toast domain errors. */
-export function useLayoutActions() {
+export function useLayoutActions(masterId?: string) {
   const editionId = useEditionId();
   const uc = useUseCases();
   const queryClient = useQueryClient();
+  /** While a master is being edited, object commands act on the master, not the page. */
+  const masterPart = masterId ? { masterId } : {};
 
   const apply = useCallback(
     async (run: () => Promise<Edition>): Promise<boolean> => {
@@ -96,7 +98,7 @@ export function useLayoutActions() {
     addObject: async (pageNumber: number, tool: ObjectTool): Promise<string | undefined> => {
       let id: string | undefined;
       const ok = await apply(async () => {
-        const result = await uc.addObject.execute({ editionId, pageNumber, tool });
+        const result = await uc.addObject.execute({ editionId, pageNumber, ...masterPart, tool });
         id = result.objectId;
         return result.edition;
       });
@@ -109,35 +111,35 @@ export function useLayoutActions() {
     ): Promise<string[] | undefined> => {
       let ids: string[] | undefined;
       const ok = await apply(async () => {
-        const result = await uc.duplicateObjects.execute({ editionId, pageNumber, objectIds });
+        const result = await uc.duplicateObjects.execute({ editionId, pageNumber, ...masterPart, objectIds });
         ids = result.objectIds;
         return result.edition;
       });
       return ok ? ids : undefined;
     },
     updateObjects: (pageNumber: number, updates: readonly IdPatch[]) =>
-      apply(() => uc.updateObjects.execute({ editionId, pageNumber, updates })),
+      apply(() => uc.updateObjects.execute({ editionId, pageNumber, ...masterPart, updates })),
     updateObject: (pageNumber: number, id: string, patch: ObjectPatch) =>
-      apply(() => uc.updateObjects.execute({ editionId, pageNumber, updates: [{ id, patch }] })),
+      apply(() => uc.updateObjects.execute({ editionId, pageNumber, ...masterPart, updates: [{ id, patch }] })),
     removeObjects: (pageNumber: number, objectIds: readonly string[]) =>
-      apply(() => uc.removeObjects.execute({ editionId, pageNumber, objectIds })),
+      apply(() => uc.removeObjects.execute({ editionId, pageNumber, ...masterPart, objectIds })),
     reorderObjects: (pageNumber: number, objectIds: readonly string[], op: ArrangeOp) =>
-      apply(() => uc.reorderObjects.execute({ editionId, pageNumber, objectIds, op })),
+      apply(() => uc.reorderObjects.execute({ editionId, pageNumber, ...masterPart, objectIds, op })),
     alignObjects: (
       pageNumber: number,
       objectIds: readonly string[],
       mode: AlignMode,
       to: AlignTarget,
-    ) => apply(() => uc.alignObjects.execute({ editionId, pageNumber, objectIds, mode, to })),
+    ) => apply(() => uc.alignObjects.execute({ editionId, pageNumber, ...masterPart, objectIds, mode, to })),
     distributeObjects: (
       pageNumber: number,
       objectIds: readonly string[],
       axis: DistributeAxis,
-    ) => apply(() => uc.distributeObjects.execute({ editionId, pageNumber, objectIds, axis })),
+    ) => apply(() => uc.distributeObjects.execute({ editionId, pageNumber, ...masterPart, objectIds, axis })),
     groupObjects: (pageNumber: number, objectIds: readonly string[]) =>
-      apply(() => uc.groupObjects.execute({ editionId, pageNumber, objectIds })),
+      apply(() => uc.groupObjects.execute({ editionId, pageNumber, ...masterPart, objectIds })),
     ungroupObjects: (pageNumber: number, objectIds: readonly string[]) =>
-      apply(() => uc.ungroupObjects.execute({ editionId, pageNumber, objectIds })),
+      apply(() => uc.ungroupObjects.execute({ editionId, pageNumber, ...masterPart, objectIds })),
     setGuides: (pageNumber: number, guides: readonly Guide[]) =>
       apply(() => uc.setGuides.execute({ editionId, pageNumber, guides })),
     autoFitPage: (pageNumber: number) =>
@@ -146,8 +148,39 @@ export function useLayoutActions() {
       apply(() => uc.clearSlot.execute({ editionId, pageNumber, leafId })),
     removeSlot: (pageNumber: number, leafId: string) =>
       apply(() => uc.removeSlot.execute({ editionId, pageNumber, leafId })),
-    setSlotStyle: (pageNumber: number, leafId: string, style: Partial<LeafStyle> | null) =>
-      apply(() => uc.setSlotStyle.execute({ editionId, pageNumber, leafId, style })),
+    setSlotStyle: (
+      pageNumber: number,
+      leafId: string,
+      style: Partial<LeafStyle> | null,
+      role?: SlotRole,
+    ) =>
+      apply(() =>
+        uc.setSlotStyle.execute({ editionId, pageNumber, leafId, style, ...(role && { role }) }),
+      ),
+    createMaster: async (name: string, fromPageNumber?: number): Promise<string | undefined> => {
+      let id: string | undefined;
+      const ok = await apply(async () => {
+        const result = await uc.createMaster.execute({
+          editionId,
+          name,
+          ...(fromPageNumber !== undefined && { fromPageNumber }),
+        });
+        id = result.masterId;
+        return result.edition;
+      });
+      return ok ? id : undefined;
+    },
+    assignMaster: (pageNumber: number, assigned: string | undefined) =>
+      apply(() =>
+        uc.assignMaster.execute({ editionId, pageNumber, ...(assigned && { masterId: assigned }) }),
+      ),
+    renameMaster: (id: string, name: string) =>
+      apply(() => uc.renameMaster.execute({ editionId, masterId: id, name })),
+    deleteMaster: (id: string) => apply(() => uc.deleteMaster.execute({ editionId, masterId: id })),
+    applyPageTemplate: (pageNumber: number, templateId: string) =>
+      apply(() => uc.applyPageTemplate.execute({ editionId, pageNumber, templateId })),
+    applyEditionTemplate: (templateId: string) =>
+      apply(() => uc.applyEditionTemplate.execute({ editionId, templateId })),
     updateMasthead: (masthead: Partial<Masthead>) =>
       apply(() => uc.updateMasthead.execute({ editionId, masthead })),
     setSlotRole: (pageNumber: number, leafId: string, role: SlotRole) =>
@@ -185,5 +218,43 @@ export function useUndoRedo() {
     canRedo,
     undo: () => step('undo'),
     redo: () => step('redo'),
+  };
+}
+
+export const libraryKey = ['library'] as const;
+
+/** Saved templates, styles and the brand kit, newest first. */
+export function useLibrary() {
+  const { listLibrary } = useUseCases();
+  return useQuery({ queryKey: libraryKey, queryFn: () => listLibrary.execute() });
+}
+
+/** Saving to and deleting from the library; each refreshes the list and toasts errors. */
+export function useLibraryActions() {
+  const editionId = useEditionId();
+  const uc = useUseCases();
+  const queryClient = useQueryClient();
+
+  const run = async <T>(task: () => Promise<T>): Promise<T | undefined> => {
+    try {
+      const result = await task();
+      await queryClient.invalidateQueries({ queryKey: libraryKey });
+      return result;
+    } catch (error) {
+      toast.error(messageOf(error));
+      return undefined;
+    }
+  };
+
+  return {
+    savePageTemplate: (pageNumber: number, name: string) =>
+      run(() => uc.savePageTemplate.execute({ editionId, pageNumber, name })),
+    saveEditionTemplate: (name: string) =>
+      run(() => uc.saveEditionTemplate.execute({ editionId, name })),
+    saveTileStyle: (name: string, role: SlotRole, style: Partial<LeafStyle>) =>
+      run(() => uc.saveTileStyle.execute({ name, role, style })),
+    saveBrandKit: (masthead: Partial<Masthead>) =>
+      run(() => uc.saveBrandKit.execute({ masthead })),
+    deleteItem: (id: string) => run(() => uc.deleteLibraryItem.execute({ id })),
   };
 }

@@ -21,14 +21,29 @@ export const selectionOf = (
   return objects.filter((o) => all.has(o.id));
 };
 
-/** Loads an edition, replaces one page's free objects, and saves. */
+/**
+ * Loads an edition, replaces the free objects of one page (or of one of its masters when
+ * `masterId` is given), and saves.
+ */
 export async function changePageObjects(
   editions: EditionRepository,
-  { editionId, pageNumber }: PageRef,
+  { editionId, pageNumber, masterId }: PageRef,
   change: (objects: readonly PageObject[]) => readonly PageObject[],
 ): Promise<Edition> {
   const edition = await editions.find(editionId);
   if (!edition) throw new NotFoundError(`Edition ${editionId} not found`);
+
+  if (masterId !== undefined) {
+    const masters = edition.masters ?? [];
+    if (!masters.some((m) => m.id === masterId)) throw new LayoutError('Master not found');
+    const updated: Edition = {
+      ...edition,
+      masters: masters.map((m) => (m.id === masterId ? { ...m, objects: change(m.objects) } : m)),
+    };
+    await editions.save(updated);
+    return updated;
+  }
+
   const page = findPage(edition, pageNumber);
   const updated = replacePage(edition, { ...page, objects: change(page.objects ?? []) });
   await editions.save(updated);

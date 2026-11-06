@@ -2,6 +2,7 @@ import type { Edition } from '../../entities/Edition';
 import { createObject, type ObjectTool } from '../../layout/objects';
 import type { EditionRepository } from '../../ports/repositories/EditionRepository';
 import type { IdGenerator } from '../../ports/services/IdGenerator';
+import type { PageRef } from '../layout/support';
 import { changePageObjects } from './support';
 
 /** Adds a text box, shape, line or image frame to a page, on top of everything else. */
@@ -11,11 +12,9 @@ export class AddObject {
     private readonly ids: IdGenerator,
   ) {}
 
-  execute(input: {
-    editionId: string;
-    pageNumber: number;
-    tool: ObjectTool;
-  }): Promise<{ edition: Edition; objectId: string }> {
+  execute(
+    input: PageRef & { tool: ObjectTool },
+  ): Promise<{ edition: Edition; objectId: string }> {
     const objectId = this.ids.next();
     return changePageObjects(this.editions, input, (objects) => [
       ...objects,

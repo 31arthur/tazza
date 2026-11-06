@@ -2,6 +2,7 @@ import { TazzaDb } from '@data/datasources/TazzaDb';
 import { DexieArticleRepository } from '@data/repositories/DexieArticleRepository';
 import { DexieAssetRepository } from '@data/repositories/DexieAssetRepository';
 import { DexieEditionRepository } from '@data/repositories/DexieEditionRepository';
+import { DexieLibraryRepository } from '@data/repositories/DexieLibraryRepository';
 import { SystemClock } from '@data/services/SystemClock';
 import { UuidGenerator } from '@data/services/UuidGenerator';
 import { CreateArticle } from '@domain/usecases/article/CreateArticle';
@@ -14,6 +15,18 @@ import { GetAssetBlob } from '@domain/usecases/asset/GetAssetBlob';
 import { SaveAsset } from '@domain/usecases/asset/SaveAsset';
 import { GetOrCreateEdition } from '@domain/usecases/edition/GetOrCreateEdition';
 import { RestoreEdition } from '@domain/usecases/edition/RestoreEdition';
+import { ApplyEditionTemplate } from '@domain/usecases/library/ApplyEditionTemplate';
+import { ApplyPageTemplate } from '@domain/usecases/library/ApplyPageTemplate';
+import { DeleteLibraryItem } from '@domain/usecases/library/DeleteLibraryItem';
+import { ListLibrary } from '@domain/usecases/library/ListLibrary';
+import { SaveBrandKit } from '@domain/usecases/library/SaveBrandKit';
+import { SaveEditionTemplate } from '@domain/usecases/library/SaveEditionTemplate';
+import { SavePageTemplate } from '@domain/usecases/library/SavePageTemplate';
+import { SaveTileStyle } from '@domain/usecases/library/SaveTileStyle';
+import { AssignMaster } from '@domain/usecases/masters/AssignMaster';
+import { CreateMaster } from '@domain/usecases/masters/CreateMaster';
+import { DeleteMaster } from '@domain/usecases/masters/DeleteMaster';
+import { RenameMaster } from '@domain/usecases/masters/RenameMaster';
 import { UpdateMasthead } from '@domain/usecases/edition/UpdateMasthead';
 import type { UseCases } from '@domain/usecases';
 import { AddObject } from '@domain/usecases/objects/AddObject';
@@ -54,13 +67,26 @@ export const createContainer = (): Container => {
   const articles = new DexieArticleRepository(db);
   const editions = new DexieEditionRepository(db);
   const assets = new DexieAssetRepository(db);
+  const library = new DexieLibraryRepository(db);
   const clock = new SystemClock();
   const ids = new UuidGenerator();
 
   const useCases: UseCases = {
-    getOrCreateEdition: new GetOrCreateEdition(editions, ids),
+    getOrCreateEdition: new GetOrCreateEdition(editions, ids, library),
     updateMasthead: new UpdateMasthead(editions),
     restoreEdition: new RestoreEdition(editions),
+    createMaster: new CreateMaster(editions, ids),
+    assignMaster: new AssignMaster(editions),
+    renameMaster: new RenameMaster(editions),
+    deleteMaster: new DeleteMaster(editions),
+    listLibrary: new ListLibrary(library),
+    savePageTemplate: new SavePageTemplate(editions, library, ids, clock),
+    saveEditionTemplate: new SaveEditionTemplate(editions, library, ids, clock),
+    saveTileStyle: new SaveTileStyle(library, ids, clock),
+    saveBrandKit: new SaveBrandKit(library, clock),
+    deleteLibraryItem: new DeleteLibraryItem(library),
+    applyPageTemplate: new ApplyPageTemplate(articles, editions, library, ids),
+    applyEditionTemplate: new ApplyEditionTemplate(articles, editions, library, ids),
     listArticles: new ListArticles(articles),
     createArticle: new CreateArticle(articles, ids, clock),
     getArticle: new GetArticle(articles),

@@ -3,6 +3,7 @@ import { Printer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { resolveMasthead } from '@domain/layout/style';
+import { masterObjectsFor } from '@domain/entities/Edition';
 import { articleIdsOf } from '@domain/layout/tree';
 import { Button } from '../../components/ui/button';
 import { useFitScale } from '../../hooks/useFitScale';
@@ -50,6 +51,7 @@ export function PreviewPage() {
                   editionId={editionId}
                   masthead={resolveMasthead(edition.masthead)}
                   articles={articles}
+                  masterObjects={masterObjectsFor(edition, page)}
                 />
               </ScaledPage>
             </figure>

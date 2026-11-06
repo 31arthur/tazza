@@ -9,7 +9,8 @@ import {
   type HeadlineFont,
   type LeafStyle,
 } from '@domain/layout/style';
-import type { Leaf } from '@domain/layout/tree';
+import type { Leaf, SlotRole } from '@domain/layout/tree';
+import { useLibrary, useLibraryActions } from '../queries';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 import { cn } from '../../lib/utils';
@@ -17,6 +18,8 @@ import { cn } from '../../lib/utils';
 interface Props {
   leaf: Leaf;
   onChange: (style: Partial<LeafStyle> | null) => void;
+  /** Applies a saved style: its role and its overrides, in one step. */
+  onApplySaved: (role: SlotRole, style: Partial<LeafStyle>) => void;
 }
 
 const FRAMES: FrameName[] = ['rule', 'box', 'none'];
@@ -52,9 +55,12 @@ function Swatch({
 }
 
 /** Style controls for one tile: colour-coded accent and tint, frame, headline font, labels. */
-export function StylePanel({ leaf, onChange }: Props) {
+export function StylePanel({ leaf, onChange, onApplySaved }: Props) {
   const { t } = useTranslation();
   const look = resolveStyle(leaf);
+  const { data: library = [] } = useLibrary();
+  const { saveTileStyle } = useLibraryActions();
+  const saved = library.filter((item) => item.kind === 'tileStyle');
 
   return (
     <div className="flex flex-col gap-3 border-t pt-3">
@@ -177,6 +183,40 @@ export function StylePanel({ leaf, onChange }: Props) {
       <Button variant="outline" size="sm" onClick={() => onChange(null)}>
         {t('style.reset')}
       </Button>
+
+      <div className="flex flex-col gap-2 border-t pt-3">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {t('style.saved')}
+        </h3>
+        {saved.length > 0 && (
+          <select
+            className={selectClass}
+            aria-label={t('style.applySaved')}
+            value=""
+            onChange={(e) => {
+              const item = saved.find((s) => s.id === e.target.value);
+              if (item?.kind === 'tileStyle') onApplySaved(item.role, item.style);
+            }}
+          >
+            <option value="">{t('style.applySaved')}</option>
+            {saved.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+        )}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            const name = window.prompt(t('style.saveName'));
+            if (name !== null) void saveTileStyle(name, leaf.role, leaf.style ?? {});
+          }}
+        >
+          {t('style.saveAs')}
+        </Button>
+      </div>
     </div>
   );
 }
