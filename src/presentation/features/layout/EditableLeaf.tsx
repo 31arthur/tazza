@@ -33,6 +33,7 @@ interface Props extends RenderLeafArgs {
 export function EditableLeaf({
   placed,
   article,
+  slice,
   selected,
   dragging,
   overflowText,
@@ -68,11 +69,12 @@ export function EditableLeaf({
         userSelect: 'none',
       }}
     >
-      {article ? (
+      {article && !slice?.orphan ? (
         <ArticleView
           article={article}
           cols={placed.cols}
           leaf={leaf}
+          slice={slice}
           onOverflowChange={setOverflowing}
         />
       ) : leaf.element ? (

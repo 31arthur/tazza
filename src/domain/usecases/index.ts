@@ -38,12 +38,14 @@ import type { AutoFitPage } from './layout/AutoFitPage';
 import type { AutoLayout } from './layout/AutoLayout';
 import type { ClearLayout } from './layout/ClearLayout';
 import type { ClearSlot } from './layout/ClearSlot';
+import type { ContinueStory } from './layout/ContinueStory';
 import type { DropArticle } from './layout/DropArticle';
 import type { PlaceArticle } from './layout/PlaceArticle';
 import type { RemovePage } from './layout/RemovePage';
 import type { RemoveSlot } from './layout/RemoveSlot';
 import type { ResizeSplit } from './layout/ResizeSplit';
 import type { SetSlotRole } from './layout/SetSlotRole';
+import type { UnlinkContinuation } from './layout/UnlinkContinuation';
 import type { SetSlotStyle } from './layout/SetSlotStyle';
 import type { UpdateElement } from './layout/UpdateElement';
 
@@ -76,6 +78,8 @@ export interface UseCases {
   removePage: RemovePage;
   applyTemplate: ApplyTemplate;
   dropArticle: DropArticle;
+  continueStory: ContinueStory;
+  unlinkContinuation: UnlinkContinuation;
   addElement: AddElement;
   addObject: AddObject;
   updateObjects: UpdateObjects;

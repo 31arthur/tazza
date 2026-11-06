@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { resolveMasthead } from '@domain/layout/style';
 import { masterObjectsFor } from '@domain/entities/Edition';
+import { flowSlices } from '@domain/layout/flow';
 import { articleIdsOf } from '@domain/layout/tree';
 import { Button } from '../../components/ui/button';
 import { useFitScale } from '../../hooks/useFitScale';
@@ -18,6 +19,10 @@ export function PreviewPage() {
   const { data: articleList = [] } = useArticles();
   const { ref, scale } = useFitScale(64, 1.2);
   const articles = useMemo(() => new Map(articleList.map((a) => [a.id, a])), [articleList]);
+  const flow = useMemo(
+    () => (edition ? flowSlices(edition, (id) => articles.get(id)) : undefined),
+    [edition, articles],
+  );
 
   if (!edition) return null;
   const hasContent = edition.pages.some((p) => articleIdsOf(p.layout).length > 0);
@@ -52,6 +57,7 @@ export function PreviewPage() {
                   masthead={resolveMasthead(edition.masthead)}
                   articles={articles}
                   masterObjects={masterObjectsFor(edition, page)}
+                  flow={flow}
                 />
               </ScaledPage>
             </figure>

@@ -46,12 +46,14 @@ import { AutoFitPage } from '@domain/usecases/layout/AutoFitPage';
 import { AutoLayout } from '@domain/usecases/layout/AutoLayout';
 import { ClearLayout } from '@domain/usecases/layout/ClearLayout';
 import { ClearSlot } from '@domain/usecases/layout/ClearSlot';
+import { ContinueStory } from '@domain/usecases/layout/ContinueStory';
 import { DropArticle } from '@domain/usecases/layout/DropArticle';
 import { PlaceArticle } from '@domain/usecases/layout/PlaceArticle';
 import { RemovePage } from '@domain/usecases/layout/RemovePage';
 import { RemoveSlot } from '@domain/usecases/layout/RemoveSlot';
 import { ResizeSplit } from '@domain/usecases/layout/ResizeSplit';
 import { SetSlotRole } from '@domain/usecases/layout/SetSlotRole';
+import { UnlinkContinuation } from '@domain/usecases/layout/UnlinkContinuation';
 import { SetSlotStyle } from '@domain/usecases/layout/SetSlotStyle';
 import { UpdateElement } from '@domain/usecases/layout/UpdateElement';
 
@@ -99,6 +101,8 @@ export const createContainer = (): Container => {
     removePage: new RemovePage(editions),
     applyTemplate: new ApplyTemplate(articles, editions, ids),
     dropArticle: new DropArticle(articles, editions, ids),
+    continueStory: new ContinueStory(articles, editions, ids),
+    unlinkContinuation: new UnlinkContinuation(articles, editions, ids),
     addElement: new AddElement(articles, editions, ids),
     addObject: new AddObject(editions, ids),
     updateObjects: new UpdateObjects(editions),

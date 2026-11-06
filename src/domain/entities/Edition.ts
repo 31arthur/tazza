@@ -3,7 +3,7 @@ import type { Masthead } from '../layout/style';
 import type { PageObject } from '../layout/objects';
 import type { Master } from './Master';
 import type { Guide } from '../layout/snapping';
-import { articleIdsOf, clearArticle, type LayoutNode } from '../layout/tree';
+import { articleIdsOf, clearArticle, leavesOf, type LayoutNode, type Leaf } from '../layout/tree';
 
 export interface Page {
   readonly number: number;
@@ -41,6 +41,18 @@ export const placedArticleIds = (edition: Edition): Set<string> =>
 /** Page number an article sits on, if it is placed. */
 export const pageOf = (edition: Edition, articleId: string): number | undefined =>
   edition.pages.find((p) => articleIdsOf(p.layout).includes(articleId))?.number;
+
+/** Finds a tile anywhere in the edition, with the page it is on. */
+export const findLeafInEdition = (
+  edition: Edition,
+  leafId: string,
+): { page: Page; leaf: Leaf } | undefined => {
+  for (const page of edition.pages) {
+    const leaf = leavesOf(page.layout).find((l) => l.id === leafId);
+    if (leaf) return { page, leaf };
+  }
+  return undefined;
+};
 
 export const findPage = (edition: Edition, pageNumber: number): Page => {
   const page = edition.pages.find((p) => p.number === pageNumber);

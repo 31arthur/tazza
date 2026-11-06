@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { masterObjectsFor, placedArticleIds } from '@domain/entities/Edition';
 import { pageFill } from '@domain/layout/fit';
+import { flowSlices, type FlowSlice } from '@domain/layout/flow';
 import { resolveMasthead } from '@domain/layout/style';
 import { TEMPLATE_IDS, type TemplateId } from '@domain/layout/templates';
 import { layoutRects, leavesOf, makeLeaf, type SlotRole } from '@domain/layout/tree';
@@ -35,6 +36,7 @@ import {
   useUndoRedo,
 } from '../queries';
 import { ColumnGuides } from './ColumnGuides';
+import { ContinuePanel } from './ContinuePanel';
 import { DividerHandle } from './DividerHandle';
 import { EditableLeaf } from './EditableLeaf';
 import { ElementPalette } from './ElementPalette';
@@ -96,6 +98,10 @@ export function LayoutPage() {
   const scale = fit * zoom;
 
   const articles = useMemo(() => new Map(articleList.map((a) => [a.id, a])), [articleList]);
+  const flow = useMemo(
+    () => (edition ? flowSlices(edition, (id) => articles.get(id)) : new Map<string, FlowSlice>()),
+    [edition, articles],
+  );
   const page = edition?.pages.find((p) => p.number === pageNumber) ?? edition?.pages[0];
   const rects = useMemo(
     () => (page ? layoutRects(page.layout, page.number) : { leaves: [], dividers: [] }),
@@ -523,6 +529,7 @@ export function LayoutPage() {
                 masthead={resolveMasthead(edition.masthead)}
                 articles={articles}
                 masterObjects={masterBeingEdited ? undefined : masterObjectsFor(edition, page)}
+                flow={flow}
                 objectsDraft={objs.draft}
                 renderLeaf={(args) =>
                   masterBeingEdited ? null : (
@@ -729,6 +736,17 @@ export function LayoutPage() {
             >
               {t('layout.removeSlot')}
             </Button>
+            {selectedArticle && (
+              <ContinuePanel
+                key={selectedLeaf.id}
+                leaf={selectedLeaf}
+                slice={flow.get(selectedLeaf.id)}
+                pageNumbers={edition.pages.map((p) => p.number)}
+                currentPage={page.number}
+                onContinue={(to) => void actions.continueStory(page.number, selectedLeaf.id, to)}
+                onUnlink={(id) => void actions.unlinkContinuation(id)}
+              />
+            )}
             {selectedLeaf.element && (
               <ElementPanel
                 tileId={selectedLeaf.id}

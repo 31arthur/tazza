@@ -91,7 +91,7 @@
     "clearSlot": "Take story out",
     "removeSlot": "Delete this space",
     "moveToPage": "Move to page",
-    "overflow": "Text does not fit - give it more room",
+    "overflow": "Text does not fit - enlarge it or continue it on another page",
     "emptySlot": "Drop a story here",
     "hint": "Drag a story onto another to swap, or onto its edge to place it beside. Drag the thin lines between stories to resize.",
     "dragHint": "Drag a story onto the page. Drop in the middle to fill or swap; drop on an edge to place it beside.",
@@ -313,5 +313,17 @@
     "pageName": "Name for this page template",
     "editionName": "Name for this edition template",
     "pageCount": "{{count}} pages"
+  },
+  "flow": {
+    "continuesOn": "Continues on page {{page}}",
+    "continuedFrom": "Continued from page {{page}}",
+    "title": "Continue story",
+    "hint": "If the story does not fit, carry it on in another tile. Jump lines are added for you.",
+    "toPage": "Continue on page",
+    "continue": "Continue story",
+    "removeNext": "Remove the continuation",
+    "removeThis": "Remove this continuation",
+    "fromInfo": "Continued from page {{page}}",
+    "toInfo": "Continues on page {{page}}"
   }
 }
