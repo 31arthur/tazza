@@ -1,0 +1,10 @@
+{
+  "app": { "name": "Tazza", "tagline": "Fresh news, every day" },
+  "nav": { "desk": "Desk", "layout": "Layout", "preview": "Preview", "settings": "Settings" },
+  "home": {
+    "title": "Today's edition",
+    "subtitle": "Write in Telugu and English, lay out A3 pages, export the PDF.",
+    "sample": "Sample headline: the government announced a new scheme today"
+  },
+  "language": { "te": "Telugu", "en": "English", "switch": "Interface language" }
+}

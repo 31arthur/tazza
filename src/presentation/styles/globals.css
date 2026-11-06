@@ -1,0 +1,45 @@
+@import 'tailwindcss';
+
+:root {
+  --font-ui: 'Inter', 'Noto Sans Telugu', system-ui, sans-serif;
+  --font-body: 'Source Serif 4', 'Noto Serif Telugu', serif;
+  --font-head: 'Playfair Display', 'Noto Serif Telugu', serif;
+  --page-w: 297mm;
+  --page-h: 420mm;
+  --col-gap: 4mm;
+}
+
+@theme inline {
+  --font-sans: var(--font-ui);
+  --font-serif: var(--font-body);
+  --font-display: var(--font-head);
+}
+
+body {
+  font-family: var(--font-ui);
+  line-height: 1.5;
+}
+
+[lang='te'] {
+  line-height: 1.65;
+}
+
+/* Telugu never hyphenates: no dictionary support. */
+[lang='te'] {
+  hyphens: manual;
+}
+
+@page {
+  size: 297mm 420mm;
+  margin: 0;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
