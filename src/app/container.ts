@@ -3,6 +3,8 @@ import { DexieArticleRepository } from '@data/repositories/DexieArticleRepositor
 import { DexieAssetRepository } from '@data/repositories/DexieAssetRepository';
 import { DexieEditionRepository } from '@data/repositories/DexieEditionRepository';
 import { DexieLibraryRepository } from '@data/repositories/DexieLibraryRepository';
+import { DexieSyncStateRepository } from '@data/repositories/DexieSyncStateRepository';
+import { HttpSyncRemote } from '@data/services/HttpSyncRemote';
 import { JsonBundleCodec } from '@data/services/JsonBundleCodec';
 import { SystemClock } from '@data/services/SystemClock';
 import { UuidGenerator } from '@data/services/UuidGenerator';
@@ -21,6 +23,10 @@ import { ChangeArticleStatus } from '@domain/usecases/workflow/ChangeArticleStat
 import { ResolveArticleNote } from '@domain/usecases/workflow/ResolveArticleNote';
 import { RestoreArticleVersion } from '@domain/usecases/workflow/RestoreArticleVersion';
 import { SaveArticleVersion } from '@domain/usecases/workflow/SaveArticleVersion';
+import { GetSyncSettings } from '@domain/usecases/sync/GetSyncSettings';
+import { SaveSyncSettings } from '@domain/usecases/sync/SaveSyncSettings';
+import { SyncNow } from '@domain/usecases/sync/SyncNow';
+import { TestSyncConnection } from '@domain/usecases/sync/TestSyncConnection';
 import { RunPreflight } from '@domain/usecases/edition/RunPreflight';
 import { ListAssets } from '@domain/usecases/asset/ListAssets';
 import { UpdateAssetMeta } from '@domain/usecases/asset/UpdateAssetMeta';
@@ -85,6 +91,8 @@ export const createContainer = (): Container => {
   const clock = new SystemClock();
   const ids = new UuidGenerator();
   const bundleCodec = new JsonBundleCodec();
+  const syncState = new DexieSyncStateRepository(db);
+  const syncRemote = new HttpSyncRemote(() => syncState.loadSettings());
 
   const useCases: UseCases = {
     getOrCreateEdition: new GetOrCreateEdition(editions, ids, library),
@@ -114,6 +122,10 @@ export const createContainer = (): Container => {
     updateAssetMeta: new UpdateAssetMeta(assets),
     deleteAsset: new DeleteAsset(assets, articles, editions),
     runPreflight: new RunPreflight(editions, articles, assets),
+    getSyncSettings: new GetSyncSettings(syncState),
+    saveSyncSettings: new SaveSyncSettings(syncState),
+    testSyncConnection: new TestSyncConnection(syncRemote),
+    syncNow: new SyncNow(articles, editions, assets, syncState, syncRemote),
     changeArticleStatus: new ChangeArticleStatus(articles, ids, clock),
     addArticleNote: new AddArticleNote(articles, ids, clock),
     resolveArticleNote: new ResolveArticleNote(articles),

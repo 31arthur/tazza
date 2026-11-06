@@ -18,6 +18,11 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: Infinity, refetchOnWindowFocus: false } },
 });
 
+// Offline support is only for the built app; the dev server must always serve fresh files.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => void navigator.serviceWorker.register('/sw.js'));
+}
+
 const root = document.getElementById('root');
 if (!root) throw new Error('Root element #root not found');
 

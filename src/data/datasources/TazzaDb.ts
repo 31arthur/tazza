@@ -3,6 +3,7 @@ import type { ArticleRecord } from '../dto/ArticleRecord';
 import type { AssetRecord } from '../dto/AssetRecord';
 import type { EditionRecord } from '../dto/EditionRecord';
 import type { LibraryRecord } from '../dto/LibraryRecord';
+import type { SyncRecord } from '../dto/SyncRecord';
 
 const STORES = {
   articles: 'id, editionId, updatedAt',
@@ -15,6 +16,7 @@ export class TazzaDb extends Dexie {
   editions!: EntityTable<EditionRecord, 'id'>;
   assets!: EntityTable<AssetRecord, 'id'>;
   library!: EntityTable<LibraryRecord, 'id'>;
+  sync!: EntityTable<SyncRecord, 'id'>;
 
   constructor(name = 'tazza') {
     super(name);
@@ -31,6 +33,13 @@ export class TazzaDb extends Dexie {
       ...STORES,
       assets: 'id, createdAt',
       library: 'id, kind, createdAt',
+    });
+    // v5: what was last agreed with the shared sync server.
+    this.version(5).stores({
+      ...STORES,
+      assets: 'id, createdAt',
+      library: 'id, kind, createdAt',
+      sync: 'id',
     });
   }
 }
