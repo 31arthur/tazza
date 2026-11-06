@@ -109,8 +109,8 @@
     "print": "Print / Save as PDF",
     "hint": "A3 pages, exactly as printed. In the print dialog choose Save as PDF, paper size A3, margins None, scale 100%.",
     "empty": "No stories on the pages yet. Use",
-    "marks": "Trim marks",
-    "marksHint": "Print a larger sheet with trim marks and a slug line around each A3 page. Choose paper size 317 x 440 mm (or larger) in the print dialog."
+    "marks": "Trim marks and bleed",
+    "marksHint": "Print a larger sheet (317 x 440 mm) with trim marks, a slug line, and 3 mm of bleed around each A3 page. In the print dialog choose that paper size or larger."
   },
   "style": {
     "title": "Style",
@@ -379,7 +379,18 @@
       "noCaption": "A photo has no caption.",
       "noCredit": "A photo has no credit.",
       "emptyText": "A text object is empty.",
-      "offPage": "An object is completely outside the page."
+      "offPage": "An object is completely outside the page.",
+      "shortOfBleed": "An object reaches the page edge but stops short of the {{bleed}} mm bleed; a white sliver may show after trimming.",
+      "fontMissing": "The font {{family}} did not load; text would print in a different typeface."
     }
+  },
+  "export": {
+    "pdf": "PDF",
+    "png": "Page images",
+    "backup": "Save edition backup file",
+    "backupFailed": "The backup could not be made.",
+    "restore": "Restore edition from a backup file",
+    "restored": "Edition restored.",
+    "noCompanion": "One-click export needs the Tazza dev server with Chrome, Edge or Chromium installed. Use Print / Save as PDF instead."
   }
 }

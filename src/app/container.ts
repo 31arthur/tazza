@@ -3,6 +3,7 @@ import { DexieArticleRepository } from '@data/repositories/DexieArticleRepositor
 import { DexieAssetRepository } from '@data/repositories/DexieAssetRepository';
 import { DexieEditionRepository } from '@data/repositories/DexieEditionRepository';
 import { DexieLibraryRepository } from '@data/repositories/DexieLibraryRepository';
+import { JsonBundleCodec } from '@data/services/JsonBundleCodec';
 import { SystemClock } from '@data/services/SystemClock';
 import { UuidGenerator } from '@data/services/UuidGenerator';
 import { CreateArticle } from '@domain/usecases/article/CreateArticle';
@@ -13,6 +14,8 @@ import { LoadSampleStories } from '@domain/usecases/article/LoadSampleStories';
 import { UpdateArticle } from '@domain/usecases/article/UpdateArticle';
 import { DeleteAsset } from '@domain/usecases/asset/DeleteAsset';
 import { GetAssetBlob } from '@domain/usecases/asset/GetAssetBlob';
+import { ExportEditionBundle } from '@domain/usecases/edition/ExportEditionBundle';
+import { ImportEditionBundle } from '@domain/usecases/edition/ImportEditionBundle';
 import { RunPreflight } from '@domain/usecases/edition/RunPreflight';
 import { ListAssets } from '@domain/usecases/asset/ListAssets';
 import { UpdateAssetMeta } from '@domain/usecases/asset/UpdateAssetMeta';
@@ -76,6 +79,7 @@ export const createContainer = (): Container => {
   const library = new DexieLibraryRepository(db);
   const clock = new SystemClock();
   const ids = new UuidGenerator();
+  const bundleCodec = new JsonBundleCodec();
 
   const useCases: UseCases = {
     getOrCreateEdition: new GetOrCreateEdition(editions, ids, library),
@@ -105,6 +109,8 @@ export const createContainer = (): Container => {
     updateAssetMeta: new UpdateAssetMeta(assets),
     deleteAsset: new DeleteAsset(assets, articles, editions),
     runPreflight: new RunPreflight(editions, articles, assets),
+    exportEditionBundle: new ExportEditionBundle(editions, articles, assets, bundleCodec),
+    importEditionBundle: new ImportEditionBundle(editions, articles, assets, bundleCodec),
     addPage: new AddPage(editions, ids),
     removePage: new RemovePage(editions),
     applyTemplate: new ApplyTemplate(articles, editions, ids),

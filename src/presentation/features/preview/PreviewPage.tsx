@@ -10,21 +10,12 @@ import { GRID } from '@domain/services/PageGeometry';
 import { countBySeverity } from '@domain/services/preflight';
 import { Button } from '../../components/ui/button';
 import { useFitScale } from '../../hooks/useFitScale';
-import { CropMarks, SLUG_MM } from '../../print/CropMarks';
+import { BLEED_MM, CropMarks, printSheetCss } from '../../print/CropMarks';
 import { PageRenderer } from '../../print/PageRenderer';
 import { ScaledPage } from '../../print/ScaledPage';
 import { useArticles, useEdition, useEditionId, usePreflight } from '../queries';
+import { ExportMenu } from './ExportMenu';
 import { PreflightPanel } from './PreflightPanel';
-
-const SHEET_W = GRID.pageWidthMm + 2 * SLUG_MM;
-const SHEET_H = GRID.pageHeightMm + 2 * SLUG_MM;
-
-/** Print rules that turn each page into a larger sheet with room for trim marks. */
-const marksCss = `@media print {
-  @page { size: ${SHEET_W}mm ${SHEET_H}mm; margin: 0; }
-  .page-fig { position: relative; width: ${SHEET_W}mm; height: ${SHEET_H}mm; }
-  .page-fig .page-slot { position: absolute; left: ${SLUG_MM}mm; top: ${SLUG_MM}mm; }
-}`;
 
 export function PreviewPage() {
   const { t } = useTranslation();
@@ -34,7 +25,7 @@ export function PreviewPage() {
   const { ref, scale } = useFitScale(64, 1.2);
   const [checking, setChecking] = useState(false);
   const [marks, setMarks] = useState(false);
-  const { data: issues = [], refetch } = usePreflight(checking);
+  const { data: issues = [], refetch } = usePreflight(checking, marks ? BLEED_MM : 0);
   const articles = useMemo(() => new Map(articleList.map((a) => [a.id, a])), [articleList]);
   const flow = useMemo(
     () => (edition ? flowSlices(edition, (id) => articles.get(id)) : undefined),
@@ -59,6 +50,7 @@ export function PreviewPage() {
             <input type="checkbox" checked={marks} onChange={(e) => setMarks(e.target.checked)} />
             {t('preview.marks')}
           </label>
+          <ExportMenu marks={marks} pageCount={edition.pages.length} />
           <Button
             variant="outline"
             aria-pressed={checking}
@@ -84,7 +76,7 @@ export function PreviewPage() {
           />
         </div>
       )}
-      {marks && <style>{marksCss}</style>}
+      {marks && <style>{printSheetCss}</style>}
       <div ref={ref} className="flex-1 overflow-auto bg-neutral-200 p-8 print:overflow-visible print:bg-white print:p-0">
         {!hasContent && (
           <p className="no-print mb-6 text-center text-muted-foreground">

@@ -50,3 +50,20 @@ export function CropMarks({ widthMm, heightMm, label }: { widthMm: number; heigh
     </div>
   );
 }
+
+/** Bleed carried past each trim edge when trim marks are on, in millimetres. */
+export const BLEED_MM = 3;
+
+const SHEET_W = 297 + 2 * SLUG_MM;
+const SHEET_H = 420 + 2 * SLUG_MM;
+
+/**
+ * Print rules that turn each page into a larger sheet with room for trim marks, and let artwork
+ * that runs past the page edge show up to the bleed distance (everything further out is cut).
+ */
+export const printSheetCss = `@media print {
+  @page { size: ${SHEET_W}mm ${SHEET_H}mm; margin: 0; }
+  .page-fig { position: relative; width: ${SHEET_W}mm; height: ${SHEET_H}mm; }
+  .page-fig .page-slot { position: absolute; left: ${SLUG_MM}mm; top: ${SLUG_MM}mm; overflow: visible !important; clip-path: inset(-${BLEED_MM}mm); }
+  .page-fig .paper { overflow: visible !important; }
+}`;

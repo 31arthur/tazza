@@ -107,3 +107,32 @@ describe('preflight', () => {
     expect(issues[0]?.severity).toBe('error');
   });
 });
+
+describe('preflight with bleed', () => {
+  const full = (x: number, w: number) => ({
+    ...createObject('rect', 'bg', 1),
+    x,
+    y: 100,
+    w,
+    h: 50,
+  });
+  const run = (o: ReturnType<typeof full>, bleedMm: number) =>
+    runPreflight({
+      edition: edition(makeLeaf('t', 'lead', 'a1'), [o]),
+      articles: [article('a1')],
+      assets: [],
+      bleedMm,
+    }).map((i) => i.code);
+
+  it('asks for artwork to run past the edge only when printing with bleed', () => {
+    const touching = full(0, 100);
+    expect(run(touching, 3)).toEqual(['shortOfBleed']);
+    expect(run(touching, 0)).toEqual([]);
+  });
+
+  it('accepts artwork that already reaches into the bleed, and objects away from the edge', () => {
+    expect(run(full(-3, 103), 3)).toEqual([]);
+    expect(run(full(50, 100), 3)).toEqual([]);
+    expect(run(full(197, 100), 3)).toEqual(['shortOfBleed']);
+  });
+});

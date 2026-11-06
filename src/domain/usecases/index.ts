@@ -1,5 +1,7 @@
 import type { DeleteAsset } from './asset/DeleteAsset';
 import type { GetAssetBlob } from './asset/GetAssetBlob';
+import type { ExportEditionBundle } from './edition/ExportEditionBundle';
+import type { ImportEditionBundle } from './edition/ImportEditionBundle';
 import type { RunPreflight } from './edition/RunPreflight';
 import type { ListAssets } from './asset/ListAssets';
 import type { UpdateAssetMeta } from './asset/UpdateAssetMeta';
@@ -82,6 +84,8 @@ export interface UseCases {
   updateAssetMeta: UpdateAssetMeta;
   deleteAsset: DeleteAsset;
   runPreflight: RunPreflight;
+  exportEditionBundle: ExportEditionBundle;
+  importEditionBundle: ImportEditionBundle;
   addPage: AddPage;
   removePage: RemovePage;
   applyTemplate: ApplyTemplate;

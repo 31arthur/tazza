@@ -12,6 +12,7 @@ import type { LeafStyle, Masthead } from '@domain/layout/style';
 import type { SlotRole } from '@domain/layout/tree';
 import type { DropZone } from '@domain/usecases/layout/DropArticle';
 import { useUseCases } from '../hooks/AppContext';
+import { checkFonts } from '../lib/fonts';
 import { isImageFile, prepareImage } from '../lib/image';
 import { useEditionStore } from '../state/editionStore';
 import { useHistoryStore } from '../state/historyStore';
@@ -318,14 +319,66 @@ export function useAssetActions() {
 }
 
 /** Print-readiness problems of the current edition; refreshed whenever it is asked for again. */
-export function usePreflight(enabled: boolean) {
+export function usePreflight(enabled: boolean, bleedMm = 0) {
   const editionId = useEditionId();
   const { runPreflight } = useUseCases();
   return useQuery({
-    queryKey: ['preflight', editionId],
-    queryFn: () => runPreflight.execute({ editionId }),
+    queryKey: ['preflight', editionId, bleedMm],
+    queryFn: async () => [...(await checkFonts()), ...(await runPreflight.execute({ editionId, bleedMm }))],
     enabled: enabled && editionId !== '',
     staleTime: 0,
     gcTime: 0,
   });
+}
+
+/** Backing up an edition to a file, restoring it, and rendering it with the Chromium companion. */
+export function useEditionFiles() {
+  const { exportEditionBundle, importEditionBundle } = useUseCases();
+  const editionId = useEditionId();
+  const queryClient = useQueryClient();
+  const setEditionId = useEditionStore((s) => s.setEditionId);
+
+  const bundle = async () => exportEditionBundle.execute({ editionId });
+
+  /** Asks the dev-server companion to render the edition; resolves to the file, or undefined. */
+  const render = async (
+    options: { format: 'pdf' | 'png'; marks: boolean; page?: number },
+    fallbackMessage: string,
+  ): Promise<Blob | undefined> => {
+    try {
+      const { blob } = await bundle();
+      const query = new URLSearchParams({
+        format: options.format,
+        marks: options.marks ? '1' : '0',
+        page: String(options.page ?? 1),
+      });
+      const response = await fetch(`/__tazza/export?${query}`, { method: 'POST', body: blob });
+      if (!response.ok) {
+        const text = await response.text();
+        toast.error(response.status === 404 ? fallbackMessage : text || fallbackMessage);
+        return undefined;
+      }
+      return await response.blob();
+    } catch (error) {
+      toast.error(messageOf(error));
+      return undefined;
+    }
+  };
+
+  return {
+    editionId,
+    bundle,
+    render,
+    restore: async (file: File): Promise<boolean> => {
+      try {
+        const imported = await importEditionBundle.execute({ file });
+        setEditionId(imported.editionId);
+        await queryClient.invalidateQueries();
+        return true;
+      } catch (error) {
+        toast.error(messageOf(error));
+        return false;
+      }
+    },
+  };
 }
