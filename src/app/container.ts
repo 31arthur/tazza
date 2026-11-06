@@ -13,6 +13,7 @@ import { LoadSampleStories } from '@domain/usecases/article/LoadSampleStories';
 import { UpdateArticle } from '@domain/usecases/article/UpdateArticle';
 import { DeleteAsset } from '@domain/usecases/asset/DeleteAsset';
 import { GetAssetBlob } from '@domain/usecases/asset/GetAssetBlob';
+import { RunPreflight } from '@domain/usecases/edition/RunPreflight';
 import { ListAssets } from '@domain/usecases/asset/ListAssets';
 import { UpdateAssetMeta } from '@domain/usecases/asset/UpdateAssetMeta';
 import { SaveAsset } from '@domain/usecases/asset/SaveAsset';
@@ -103,6 +104,7 @@ export const createContainer = (): Container => {
     listAssets: new ListAssets(assets, articles, editions),
     updateAssetMeta: new UpdateAssetMeta(assets),
     deleteAsset: new DeleteAsset(assets, articles, editions),
+    runPreflight: new RunPreflight(editions, articles, assets),
     addPage: new AddPage(editions, ids),
     removePage: new RemovePage(editions),
     applyTemplate: new ApplyTemplate(articles, editions, ids),

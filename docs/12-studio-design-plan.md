@@ -90,8 +90,9 @@ Status: ✅ done (Phase A shipped) · ⏭ planned · 💭 later.
 | Capability | Status |
 |---|---|
 | Print preview and browser "Save as PDF" at A3 | ✅ |
-| Preflight (overset, low-res photos, empty slots, missing captions, fonts) | ⏭ |
-| One-click deterministic PDF (Chromium companion), bleed and crop marks | ⏭ |
+| Preflight (overfull pages, low-res photos, empty tiles/pages, missing headlines, captions, credits, stray objects) | ✅ (fonts check ⏭) |
+| Trim marks and slug line on a larger sheet | ✅ (true bleed ⏭) |
+| One-click deterministic PDF (Chromium companion), per-page PNG, edition backup bundle | ⏭ |
 | PDF/X and CMYK for the press | 💭 |
 | Page PNG/JPG for social and WhatsApp, e-paper HTML | ⏭ |
 
