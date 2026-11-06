@@ -46,7 +46,7 @@ export function PreflightPanel({
               >
                 <Icon className={cn('mt-0.5 size-4 shrink-0', TONES[issue.severity])} />
                 <span>
-                  <span className="font-medium">{t('layout.page', { n: issue.page })}: </span>
+                  {issue.page > 0 && <span className="font-medium">{t('layout.page', { n: issue.page })}: </span>}
                   {t(`preflight.codes.${issue.code}`, { ...issue.params })}
                 </span>
               </button>

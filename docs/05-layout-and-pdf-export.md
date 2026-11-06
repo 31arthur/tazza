@@ -129,9 +129,17 @@ The **Photos** screen is the library: search by name, credit, caption or tag, fi
 
 **Preflight** (Preview screen) checks the edition before it goes to press and lists problems by page; click one to jump to the page. Errors: story missing or without a headline, photo box without a picture or whose photo is gone from the library, a page whose stories need over 110% of the space. Warnings: pages over 102% full, empty pages or tiles, photos printing below 200 ppi, photos without a caption, empty text objects, objects completely off the page. Notes: photos without a credit. The check is a pure domain service (`runPreflight`, use case `RunPreflight`). Printing re-runs it and asks for confirmation when errors remain.
 
-**Trim marks** add a 10 mm slug around each A3 page, with corner marks and a "TAZZA - date - page" line; choose paper 317 x 440 mm (or larger) in the print dialog.
+**Trim marks and bleed** print a larger sheet (317 x 440 mm) with a 10 mm slug around each A3 page: corner marks, a "TAZZA - date - page" line, and artwork that runs past the page edge shows up to 3 mm into the bleed. Preflight warns about objects that touch a page edge but stop short of the bleed. Tiles do not extend into the bleed; edge-to-edge artwork must be a free object.
 
-- **Limits:** this is browser printing, so the marks and size depend on the print dialog. There is no true bleed (artwork is not extended beyond the trim edge), no fonts check, no one-click PDF, per-page PNG or edition backup bundle yet.
+**Fonts check:** before printing, Preflight loads every typeface the pages use (Latin and Telugu) and reports one that failed to load.
+
+### One-click PDF, page images and backups
+
+Three buttons on the Preview screen: **PDF**, **Page images** and the **Save / Restore backup** icons.
+
+- **PDF and page images** go through `tools/exportCompanion.ts`, a Vite dev-server plugin. The app posts the edition as a bundle; the plugin opens `/render` in a clean headless Chrome, Edge or Chromium (found automatically, or set `CHROME_PATH`), imports the bundle into that browser, waits for fonts and pictures, then prints a PDF or captures each page as a PNG (about 190 dpi). The PDF embeds its fonts and keeps Telugu text; its pages are A3 (the page box is within a point of 841.89 x 1190.55). With "Trim marks and bleed" on, the PDF uses the larger sheet.
+- **Edition backup** is one `.tazza.json` file holding the edition, its stories and the photos it uses (base64). **Restore** replaces the edition of that date and saves its stories and photos; restoring the same file twice changes nothing. Use it to back up, or to move a day's work to another computer.
+- **Limits:** the companion runs only with `pnpm dev` and needs Chrome, Edge or Chromium installed; in a plain build, use Print / Save as PDF. Page images download one after another. There is no PDF/X or CMYK, and edition status is not yet marked Exported.
 
 ### Masters
 

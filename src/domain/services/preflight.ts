@@ -21,7 +21,9 @@ export type PreflightCode =
   | 'noCaption'
   | 'noCredit'
   | 'emptyText'
-  | 'offPage';
+  | 'offPage'
+  | 'shortOfBleed'
+  | 'fontMissing';
 
 /** One thing to look at before the pages go to press. */
 export interface PreflightIssue {
@@ -38,6 +40,8 @@ export interface PreflightInput {
   readonly edition: Edition;
   readonly articles: readonly Article[];
   readonly assets: readonly Asset[];
+  /** When printing with bleed, how far artwork must run past the trim edge (mm). */
+  readonly bleedMm?: number;
 }
 
 const OVERFULL_WARN = 1.02;
@@ -48,12 +52,21 @@ const hasText = (s: string | undefined): boolean => (s ?? '').trim() !== '';
 const insidePage = (o: PageObject): boolean =>
   o.x + o.w > 0 && o.y + o.h > 0 && o.x < GRID.pageWidthMm && o.y < GRID.pageHeightMm;
 
+const EDGE_TOLERANCE_MM = 0.5;
+
+/** An object that runs up to a page edge should carry on past it into the bleed. */
+const fallsShortOfBleed = (o: PageObject, bleed: number): boolean =>
+  (Math.abs(o.x) <= EDGE_TOLERANCE_MM && o.x > -bleed) ||
+  (Math.abs(o.y) <= EDGE_TOLERANCE_MM && o.y > -bleed) ||
+  (Math.abs(o.x + o.w - GRID.pageWidthMm) <= EDGE_TOLERANCE_MM && o.x + o.w < GRID.pageWidthMm + bleed) ||
+  (Math.abs(o.y + o.h - GRID.pageHeightMm) <= EDGE_TOLERANCE_MM && o.y + o.h < GRID.pageHeightMm + bleed);
+
 /**
  * Checks an edition the way a production desk would before sending it to press: empty or
  * overfull pages, missing headlines, missing or soft photos, missing captions and credits,
  * and stray objects. Pure: it reads the edition and reports; it never changes anything.
  */
-export const runPreflight = ({ edition, articles, assets }: PreflightInput): PreflightIssue[] => {
+export const runPreflight = ({ edition, articles, assets, bleedMm = 0 }: PreflightInput): PreflightIssue[] => {
   const issues: PreflightIssue[] = [];
   const articleById = new Map(articles.map((a) => [a.id, a]));
   const assetById = new Map(assets.map((a) => [a.id, a]));
@@ -130,6 +143,9 @@ export const runPreflight = ({ edition, articles, assets }: PreflightInput): Pre
       if (o.hidden) continue;
       if (!insidePage(o)) {
         issues.push({ code: 'offPage', severity: 'warning', page: page.number, targetId: o.id });
+      }
+      if (bleedMm > 0 && fallsShortOfBleed(o, bleedMm)) {
+        issues.push({ code: 'shortOfBleed', severity: 'warning', page: page.number, targetId: o.id, params: { bleed: bleedMm } });
       }
       if (o.kind === 'text' && !hasText(o.text)) {
         issues.push({ code: 'emptyText', severity: 'warning', page: page.number, targetId: o.id });

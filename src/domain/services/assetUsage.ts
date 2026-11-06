@@ -33,3 +33,10 @@ export const countAssetUsage = (
   }
   return counts;
 };
+
+/** The photos one edition needs: its stories' images, photo boxes, image frames and masters. */
+export const assetIdsUsedBy = (edition: Edition, articles: readonly Article[]): string[] => {
+  const ids = new Set<string>();
+  for (const [id] of countAssetUsage(articles, [edition])) ids.add(id);
+  return [...ids];
+};
