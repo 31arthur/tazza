@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Printer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { resolveMasthead } from '@domain/layout/style';
 import { articleIdsOf } from '@domain/layout/tree';
 import { Button } from '../../components/ui/button';
 import { useFitScale } from '../../hooks/useFitScale';
@@ -44,7 +45,12 @@ export function PreviewPage() {
                 {t('layout.page', { n: page.number })} · A3 · 297 × 420 mm
               </figcaption>
               <ScaledPage scale={scale}>
-                <PageRenderer page={page} editionId={editionId} articles={articles} />
+                <PageRenderer
+                  page={page}
+                  editionId={editionId}
+                  masthead={resolveMasthead(edition.masthead)}
+                  articles={articles}
+                />
               </ScaledPage>
             </figure>
           ))}

@@ -25,12 +25,14 @@ export interface Article {
   readonly headline: string;
   readonly subHeadline: string;
   readonly byline: string;
+  /** Place name set in bold at the start of the story, e.g. "హైదరాబాద్:". */
+  readonly dateline?: string;
   readonly body: ArticleBody;
   readonly createdAt: number;
   readonly updatedAt: number;
 }
 
-export type ArticlePatch = Partial<Pick<Article, 'headline' | 'subHeadline' | 'byline' | 'body'>>;
+export type ArticlePatch = Partial<Pick<Article, 'headline' | 'subHeadline' | 'byline' | 'dateline' | 'body'>>;
 
 export const inlineText = (children: readonly Inline[]): string =>
   children.map((c) => c.text).join('');

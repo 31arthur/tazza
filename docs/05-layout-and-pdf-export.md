@@ -57,6 +57,25 @@ After every change the page is re-fitted. Thin dividers between tiles can be dra
 | Boxed | Tinted panel with border |
 | Brief | Small headline and text |
 
+### Style system
+
+Each role has a **preset style** (`domain/layout/style.ts`); a tile may override any field. Colour is coded from a fixed palette, not freehand.
+
+| Field | Options |
+|---|---|
+| Accent colour | ink, red, blue, green, amber (kicker, deck, box outline, jump line) |
+| Headline colour | black ink or the accent (red for the most urgent) |
+| Background tint | none, yellow, blue, pink, green, grey |
+| Frame | rule below (standard), box (accent outline), none |
+| Headline font | serif, sans bold, heavy display |
+| Kicker, jump line | free text (e.g. `SPORTS`, `2 >>`) |
+| Headline over photo | banner style: white outlined headline printed on the lead photo |
+| Deck band | deck on a yellow band in the accent colour |
+
+Rule weights are fixed: hairline 0.2 mm between columns, standard 0.3 mm between stories, heavy 0.8 mm under banners and the masthead. Articles may carry a **dateline** (place name) set bold in the accent colour at the start of the first paragraph.
+
+The **masthead** is edited per edition: Telugu title, English name, tagline, colour, left and right **ears** (small boxed teasers; first line is the bold headline), a top strip, and colour-registration marks along the bottom edge.
+
 ### Templates
 
 Templates are data (`domain/layout/templates.ts`): front page (8, 5 or 3 stories), inner page (6, 4 or 2 stories) and single story. Slot **priority** decides which story goes where: the heaviest stories take priority 1. **Auto layout** picks, for each page, the fullest template whose stories still fit (fill ≤ 100%), adds pages as needed and leaves no empty tiles.

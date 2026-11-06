@@ -8,6 +8,7 @@ export interface SampleStory {
   readonly headline: string;
   readonly subHeadline: string;
   readonly byline: string;
+  readonly dateline?: string;
   readonly body: ArticleBody;
 }
 
@@ -33,6 +34,7 @@ const img = (key: SampleImageKey, caption: string): BodyNode => ({
 export const SAMPLE_STORIES: readonly SampleStory[] = [
   {
     headline: 'హైదరాబాద్‌లో మెట్రో రెండో దశకు శ్రీకారం',
+    dateline: 'హైదరాబాద్:',
     subHeadline: 'కొత్త మార్గాలతో లక్షలాది ప్రయాణికులకు ఊరట',
     byline: 'నమూనా · స్టాఫ్ రిపోర్టర్, హైదరాబాద్',
     body: [
@@ -58,6 +60,7 @@ export const SAMPLE_STORIES: readonly SampleStory[] = [
   },
   {
     headline: 'Monsoon rains ease reservoir worries across the state',
+    dateline: 'HYDERABAD:',
     subHeadline: 'Storage levels cross the seasonal average for the first time in three years',
     byline: 'Sample · Staff Reporter, Hyderabad',
     body: [
@@ -86,6 +89,7 @@ export const SAMPLE_STORIES: readonly SampleStory[] = [
   },
   {
     headline: 'రైతులకు రాయితీపై విత్తన పంపిణీ ప్రారంభం',
+    dateline: 'అమరావతి:',
     subHeadline: 'రైతు సేవా కేంద్రాల్లో ఈ నెలాఖరు వరకు అందుబాటులో',
     byline: 'నమూనా · వ్యవసాయ విభాగం ప్రతినిధి',
     body: [
@@ -103,6 +107,7 @@ export const SAMPLE_STORIES: readonly SampleStory[] = [
   },
   {
     headline: 'Local XI clinch district cricket title with last-over finish',
+    dateline: 'WARANGAL:',
     subHeadline: 'Captain’s unbeaten 64 steers chase after early collapse',
     byline: 'Sample · Sports Desk',
     body: [
@@ -121,6 +126,7 @@ export const SAMPLE_STORIES: readonly SampleStory[] = [
   },
   {
     headline: 'ప్రభుత్వ పాఠశాలల్లో డిజిటల్ తరగతుల విస్తరణ',
+    dateline: 'విజయవాడ:',
     subHeadline: 'మొదటి విడతలో వెయ్యి బడులకు స్మార్ట్ బోర్డులు',
     byline: 'నమూనా · విద్యా విభాగం ప్రతినిధి',
     body: [
@@ -181,6 +187,7 @@ export const SAMPLE_STORIES: readonly SampleStory[] = [
   },
   {
     headline: 'సంక్రాంతి సంబరాలకు సన్నాహాలు',
+    dateline: 'తిరుపతి:',
     subHeadline: 'పతంగుల ఉత్సవం, ముగ్గుల పోటీలకు ఏర్పాట్లు',
     byline: 'నమూనా · సాంస్కృతిక ప్రతినిధి',
     body: [

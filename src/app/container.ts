@@ -13,6 +13,7 @@ import { UpdateArticle } from '@domain/usecases/article/UpdateArticle';
 import { GetAssetBlob } from '@domain/usecases/asset/GetAssetBlob';
 import { SaveAsset } from '@domain/usecases/asset/SaveAsset';
 import { GetOrCreateEdition } from '@domain/usecases/edition/GetOrCreateEdition';
+import { UpdateMasthead } from '@domain/usecases/edition/UpdateMasthead';
 import type { UseCases } from '@domain/usecases';
 import { AddPage } from '@domain/usecases/layout/AddPage';
 import { ApplyTemplate } from '@domain/usecases/layout/ApplyTemplate';
@@ -26,6 +27,7 @@ import { RemovePage } from '@domain/usecases/layout/RemovePage';
 import { RemoveSlot } from '@domain/usecases/layout/RemoveSlot';
 import { ResizeSplit } from '@domain/usecases/layout/ResizeSplit';
 import { SetSlotRole } from '@domain/usecases/layout/SetSlotRole';
+import { SetSlotStyle } from '@domain/usecases/layout/SetSlotStyle';
 
 export interface Container {
   useCases: UseCases;
@@ -44,6 +46,7 @@ export const createContainer = (): Container => {
 
   const useCases: UseCases = {
     getOrCreateEdition: new GetOrCreateEdition(editions, ids),
+    updateMasthead: new UpdateMasthead(editions),
     listArticles: new ListArticles(articles),
     createArticle: new CreateArticle(articles, ids, clock),
     getArticle: new GetArticle(articles),
@@ -60,6 +63,7 @@ export const createContainer = (): Container => {
     clearSlot: new ClearSlot(articles, editions),
     removeSlot: new RemoveSlot(articles, editions, ids),
     setSlotRole: new SetSlotRole(articles, editions),
+    setSlotStyle: new SetSlotStyle(articles, editions),
     resizeSplit: new ResizeSplit(articles, editions),
     autoFitPage: new AutoFitPage(articles, editions),
     clearLayout: new ClearLayout(editions, ids),

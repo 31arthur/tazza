@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { Edition } from '@domain/entities/Edition';
 import type { TemplateId } from '@domain/layout/templates';
+import type { LeafStyle, Masthead } from '@domain/layout/style';
 import type { SlotRole } from '@domain/layout/tree';
 import type { DropZone } from '@domain/usecases/layout/DropArticle';
 import { useUseCases } from '../hooks/AppContext';
@@ -83,6 +84,10 @@ export function useLayoutActions() {
       apply(() => uc.clearSlot.execute({ editionId, pageNumber, leafId })),
     removeSlot: (pageNumber: number, leafId: string) =>
       apply(() => uc.removeSlot.execute({ editionId, pageNumber, leafId })),
+    setSlotStyle: (pageNumber: number, leafId: string, style: Partial<LeafStyle> | null) =>
+      apply(() => uc.setSlotStyle.execute({ editionId, pageNumber, leafId, style })),
+    updateMasthead: (masthead: Partial<Masthead>) =>
+      apply(() => uc.updateMasthead.execute({ editionId, masthead })),
     setSlotRole: (pageNumber: number, leafId: string, role: SlotRole) =>
       apply(() => uc.setSlotRole.execute({ editionId, pageNumber, leafId, role })),
     resizeSplit: (pageNumber: number, splitId: string, sizes: readonly number[]) =>

@@ -132,6 +132,14 @@ export function ArticleEditor({ article }: Props) {
           style={{ lineHeight: 1.5 }}
         />
         <Input
+          defaultValue={article.dateline ?? ''}
+          lang={detectLanguage(article.dateline ?? '')}
+          placeholder={t('write.dateline')}
+          aria-label={t('write.dateline')}
+          onChange={(e) => schedule({ dateline: e.target.value })}
+          className="h-8 border-0 border-b bg-transparent px-0 text-sm font-semibold shadow-none focus-visible:ring-0"
+        />
+        <Input
           defaultValue={article.byline}
           lang={detectLanguage(article.byline)}
           placeholder={t('write.byline')}

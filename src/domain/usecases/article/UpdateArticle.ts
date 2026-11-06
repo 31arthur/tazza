@@ -17,6 +17,7 @@ export class UpdateArticle {
       ...(patch.headline !== undefined && { headline: patch.headline.normalize('NFC') }),
       ...(patch.subHeadline !== undefined && { subHeadline: patch.subHeadline.normalize('NFC') }),
       ...(patch.byline !== undefined && { byline: patch.byline.normalize('NFC') }),
+      ...(patch.dateline !== undefined && { dateline: patch.dateline.normalize('NFC') }),
       updatedAt: this.clock.now(),
     };
     await this.articles.save(updated);
