@@ -96,7 +96,11 @@
     "dragHint": "Drag a story onto the page. Drop in the middle to fill or swap; drop on an edge to place it beside.",
     "fill": "Page {{pct}}% full",
     "overfull": "Overfull {{pct}}%",
-    "fillHint": "How much of the page the stories need"
+    "fillHint": "How much of the page the stories need",
+    "undo": "Undo",
+    "redo": "Redo",
+    "guides": "Column guides",
+    "shortcuts": "Shortcuts: Ctrl+Z undo · Ctrl+Y redo · Delete take story out · Shift+Delete delete space · Esc deselect · G guides · + / - zoom"
   },
   "preview": {
     "print": "Print / Save as PDF",

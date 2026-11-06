@@ -1,5 +1,15 @@
-import { useMemo, useRef, useState } from 'react';
-import { GripVertical, LayoutGrid, Plus, Trash2, Wand2, Maximize2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Columns3,
+  GripVertical,
+  LayoutGrid,
+  Maximize2,
+  Plus,
+  Redo2,
+  Trash2,
+  Undo2,
+  Wand2,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { placedArticleIds } from '@domain/entities/Edition';
@@ -13,7 +23,14 @@ import { useFitScale } from '../../hooks/useFitScale';
 import { cn } from '../../lib/utils';
 import { PageRenderer } from '../../print/PageRenderer';
 import { ScaledPage } from '../../print/ScaledPage';
-import { useArticles, useEdition, useEditionId, useLayoutActions } from '../queries';
+import {
+  useArticles,
+  useEdition,
+  useEditionId,
+  useLayoutActions,
+  useUndoRedo,
+} from '../queries';
+import { ColumnGuides } from './ColumnGuides';
 import { DividerHandle } from './DividerHandle';
 import { EditableLeaf } from './EditableLeaf';
 import { ElementPalette } from './ElementPalette';
@@ -53,6 +70,8 @@ export function LayoutPage() {
   const [zoom, setZoom] = useState(1);
   const [pageNumber, setPageNumber] = useState(1);
   const [selectedLeafId, setSelectedLeafId] = useState<string | undefined>();
+  const [guides, setGuides] = useState(false);
+  const { undo, redo, canUndo, canRedo } = useUndoRedo();
   const scale = fit * zoom;
 
   const articles = useMemo(() => new Map(articleList.map((a) => [a.id, a])), [articleList]);
@@ -83,6 +102,41 @@ export function LayoutPage() {
         ...(source.fromLeafId && { fromLeafId: source.fromLeafId }),
       });
     },
+  });
+
+  // Keyboard shortcuts, as in a desktop layout tool. They never fire while typing in a field.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const typing =
+        e.target instanceof HTMLElement &&
+        e.target.matches('input, textarea, select, [contenteditable="true"]');
+      if (typing) return;
+      const mod = e.ctrlKey || e.metaKey;
+      const key = e.key.toLowerCase();
+      if (mod && key === 'z') {
+        e.preventDefault();
+        void (e.shiftKey ? redo() : undo());
+      } else if (mod && key === 'y') {
+        e.preventDefault();
+        void redo();
+      } else if (e.key === 'Escape') {
+        setSelectedLeafId(undefined);
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedLeafId && page) {
+        e.preventDefault();
+        void (e.shiftKey
+          ? actions.removeSlot(page.number, selectedLeafId)
+          : actions.clearSlot(page.number, selectedLeafId));
+        if (e.shiftKey) setSelectedLeafId(undefined);
+      } else if (!mod && key === 'g') {
+        setGuides((g) => !g);
+      } else if (!mod && (e.key === '+' || e.key === '=')) {
+        setZoom((z) => Math.min(1.5, Math.round((z + 0.1) * 100) / 100));
+      } else if (!mod && e.key === '-') {
+        setZoom((z) => Math.max(0.5, Math.round((z - 0.1) * 100) / 100));
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   });
 
   if (!edition || !page) return null;
@@ -191,6 +245,7 @@ export function LayoutPage() {
           ))}
         </ul>
         <p className="border-t p-3 text-xs text-muted-foreground">{t('layout.dragHint')}</p>
+        <p className="border-t p-3 text-[11px] text-muted-foreground">{t('layout.shortcuts')}</p>
       </aside>
 
       {/* Centre: page tabs + canvas */}
@@ -222,6 +277,38 @@ export function LayoutPage() {
               <Trash2 /> {t('layout.removePage')}
             </Button>
           )}
+          <div className="ml-2 flex items-center gap-1">
+            <Button
+              size="icon"
+              variant="ghost"
+              disabled={!canUndo}
+              aria-label={t('layout.undo')}
+              title={`${t('layout.undo')} (Ctrl+Z)`}
+              onClick={() => void undo()}
+            >
+              <Undo2 />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              disabled={!canRedo}
+              aria-label={t('layout.redo')}
+              title={`${t('layout.redo')} (Ctrl+Y)`}
+              onClick={() => void redo()}
+            >
+              <Redo2 />
+            </Button>
+            <Button
+              size="icon"
+              variant={guides ? 'secondary' : 'ghost'}
+              aria-pressed={guides}
+              aria-label={t('layout.guides')}
+              title={`${t('layout.guides')} (G)`}
+              onClick={() => setGuides((g) => !g)}
+            >
+              <Columns3 />
+            </Button>
+          </div>
           {hasStories && (
             <span
               className={cn(
@@ -281,6 +368,7 @@ export function LayoutPage() {
                     : undefined;
                   return (
                     <>
+                      {guides && <ColumnGuides pageNumber={page.number} />}
                       {rects.dividers.map((d) => (
                         <DividerHandle
                           key={`${d.splitId}-${d.index}`}

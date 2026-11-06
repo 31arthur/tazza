@@ -7,6 +7,7 @@ import type { ListArticles } from './article/ListArticles';
 import type { LoadSampleStories } from './article/LoadSampleStories';
 import type { UpdateArticle } from './article/UpdateArticle';
 import type { GetOrCreateEdition } from './edition/GetOrCreateEdition';
+import type { RestoreEdition } from './edition/RestoreEdition';
 import type { UpdateMasthead } from './edition/UpdateMasthead';
 import type { AddElement } from './layout/AddElement';
 import type { AddPage } from './layout/AddPage';
@@ -28,6 +29,7 @@ import type { UpdateElement } from './layout/UpdateElement';
 export interface UseCases {
   getOrCreateEdition: GetOrCreateEdition;
   updateMasthead: UpdateMasthead;
+  restoreEdition: RestoreEdition;
   listArticles: ListArticles;
   createArticle: CreateArticle;
   getArticle: GetArticle;

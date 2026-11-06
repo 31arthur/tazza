@@ -9,6 +9,7 @@ import type { SlotRole } from '@domain/layout/tree';
 import type { DropZone } from '@domain/usecases/layout/DropArticle';
 import { useUseCases } from '../hooks/AppContext';
 import { useEditionStore } from '../state/editionStore';
+import { useHistoryStore } from '../state/historyStore';
 
 export const editionKey = (id: string) => ['edition', id] as const;
 export const articlesKey = (id: string) => ['articles', id] as const;
@@ -56,7 +57,10 @@ export function useLayoutActions() {
   const apply = useCallback(
     async (run: () => Promise<Edition>): Promise<boolean> => {
       try {
-        queryClient.setQueryData(editionKey(editionId), await run());
+        const before = queryClient.getQueryData<Edition>(editionKey(editionId));
+        const after = await run();
+        if (before) useHistoryStore.getState().record(editionId, before);
+        queryClient.setQueryData(editionKey(editionId), after);
         return true;
       } catch (error) {
         toast.error(messageOf(error));
@@ -99,5 +103,36 @@ export function useLayoutActions() {
       apply(() => uc.setSlotRole.execute({ editionId, pageNumber, leafId, role })),
     resizeSplit: (pageNumber: number, splitId: string, sizes: readonly number[]) =>
       apply(() => uc.resizeSplit.execute({ editionId, pageNumber, splitId, sizes })),
+  };
+}
+
+/** Undo and redo for layout changes (page structure, styles, masthead, elements). */
+export function useUndoRedo() {
+  const editionId = useEditionId();
+  const { restoreEdition } = useUseCases();
+  const queryClient = useQueryClient();
+  const canUndo = useHistoryStore((s) => (s.past[editionId]?.length ?? 0) > 0);
+  const canRedo = useHistoryStore((s) => (s.future[editionId]?.length ?? 0) > 0);
+
+  const step = useCallback(
+    async (direction: 'undo' | 'redo') => {
+      const current = queryClient.getQueryData<Edition>(editionKey(editionId));
+      if (!current) return;
+      const target = useHistoryStore.getState()[direction](editionId, current);
+      if (!target) return;
+      try {
+        queryClient.setQueryData(editionKey(editionId), await restoreEdition.execute({ edition: target }));
+      } catch (error) {
+        toast.error(messageOf(error));
+      }
+    },
+    [editionId, queryClient, restoreEdition],
+  );
+
+  return {
+    canUndo,
+    canRedo,
+    undo: () => step('undo'),
+    redo: () => step('redo'),
   };
 }
