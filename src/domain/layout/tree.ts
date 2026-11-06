@@ -22,6 +22,13 @@ export interface Leaf {
   /** Template slots are filled in priority order (1 = most important). */
   readonly priority?: number;
   readonly articleId?: string;
+  /**
+   * Set on a tile that carries on a story from another tile (the id of the tile before it).
+   * Such a tile holds the same `articleId` and shows the next part of the text.
+   */
+  readonly continuesFrom?: string;
+  /** Set on a tile whose story carries on in another tile (the id of the tile after it). */
+  readonly continuesTo?: string;
   /** A non-story tile (photo, text box, label, ad). A tile holds a story or an element, never both. */
   readonly element?: Element;
 }
@@ -51,7 +58,9 @@ export const makeLeaf = (
 });
 
 export const withArticle = (leaf: Leaf, articleId: string | undefined): Leaf => {
-  const { articleId: _dropped, element: _element, ...rest } = leaf;
+  // A tile given a different story (or emptied) can no longer be part of a continued story.
+  const { articleId: _dropped, element: _element, continuesFrom: _from, continuesTo: _to, ...rest } =
+    leaf;
   return articleId === undefined ? rest : { ...rest, articleId };
 };
 

@@ -142,6 +142,10 @@ export function useLayoutActions(masterId?: string) {
       apply(() => uc.ungroupObjects.execute({ editionId, pageNumber, ...masterPart, objectIds })),
     setGuides: (pageNumber: number, guides: readonly Guide[]) =>
       apply(() => uc.setGuides.execute({ editionId, pageNumber, guides })),
+    continueStory: (pageNumber: number, leafId: string, toPageNumber: number) =>
+      apply(() => uc.continueStory.execute({ editionId, pageNumber, leafId, toPageNumber })),
+    unlinkContinuation: (leafId: string) =>
+      apply(() => uc.unlinkContinuation.execute({ editionId, leafId })),
     autoFitPage: (pageNumber: number) =>
       apply(() => uc.autoFitPage.execute({ editionId, pageNumber })),
     clearSlot: (pageNumber: number, leafId: string) =>

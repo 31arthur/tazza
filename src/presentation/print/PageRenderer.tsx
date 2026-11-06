@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { Article } from '@domain/entities/Article';
 import type { Page } from '@domain/entities/Edition';
 import { layoutRects, type PlacedLeaf } from '@domain/layout/tree';
+import type { FlowSlice } from '@domain/layout/flow';
 import type { ObjectPatch, PageObject } from '@domain/layout/objects';
 import type { Masthead as MastheadSettings } from '@domain/layout/style';
 import { GRID } from '@domain/services/PageGeometry';
@@ -14,6 +15,8 @@ import { Folio, Masthead, RunningHeader } from './PageChrome';
 export interface RenderLeafArgs {
   placed: PlacedLeaf;
   article: Article | undefined;
+  /** Set when this tile is part of a story continued across tiles. */
+  slice?: FlowSlice | undefined;
 }
 
 interface Props {
@@ -25,17 +28,19 @@ interface Props {
   renderLeaf?: ((args: RenderLeafArgs) => ReactNode) | undefined;
   /** Objects of the page's master, drawn behind the stories and the page's own objects. */
   masterObjects?: readonly PageObject[] | undefined;
+  /** How continued stories are divided between their tiles (see `flowSlices`). */
+  flow?: ReadonlyMap<string, FlowSlice> | undefined;
   /** Unsaved changes to free objects while they are being dragged or resized. */
   objectsDraft?: ReadonlyMap<string, ObjectPatch> | undefined;
   /** Drawn on top of the page in page coordinates (drop highlights, dividers). */
   overlay?: ((leaves: readonly PlacedLeaf[]) => ReactNode) | undefined;
 }
 
-export function PrintLeaf({ placed, article }: RenderLeafArgs) {
+export function PrintLeaf({ placed, article, slice }: RenderLeafArgs) {
   return (
     <LeafFrame placed={placed}>
-      {article ? (
-        <ArticleView article={article} cols={placed.cols} leaf={placed.leaf} />
+      {article && slice?.orphan ? null : article ? (
+        <ArticleView article={article} cols={placed.cols} leaf={placed.leaf} slice={slice} />
       ) : (
         placed.leaf.element && (
           <ElementView element={placed.leaf.element} cols={placed.cols} leaf={placed.leaf} />
@@ -55,6 +60,7 @@ export function PageRenderer({
   masthead,
   articles,
   masterObjects,
+  flow,
   renderLeaf,
   objectsDraft,
   overlay,
@@ -83,6 +89,7 @@ export function PageRenderer({
           {draw({
             placed,
             article: placed.leaf.articleId ? articles.get(placed.leaf.articleId) : undefined,
+            slice: flow?.get(placed.leaf.id),
           })}
         </div>
       ))}

@@ -73,7 +73,7 @@ Status: ✅ done (Phase A shipped) · ⏭ planned · 💭 later.
 | Style library: save and apply **tile** styles | ✅ (object styles ⏭) |
 | Templates gallery, save page and whole edition as template | ✅ |
 | Brand kit: masthead saved as the default for new editions | ✅ (custom palette and fonts ⏭) |
-| Linked text frames: continue a story in another tile, automatic jump lines | ⏭ |
+| Linked text frames: continue a story in another tile or page, automatic jump lines | ✅ |
 | Spreads (two-page views), page thumbnails strip | ⏭ |
 | Text wrap around photos | 💭 |
 
@@ -180,7 +180,7 @@ Each phase is one or more branches (`feature/…`) merged back into `dev`, with 
 | **A ✅** | `feature/free-objects` | Free objects layer, select/move/resize/rotate, snapping and smart guides, align to page, z-order, duplicate, lock/hide, insert text/shape/line/image, object panel, layers panel | A designer can add a stamp, arrow, cut-out photo or label anywhere on the page, snap it to columns and margins, and see it identically in preview |
 | **B ✅** | `feature/multi-select` | Multi-select, group/ungroup, distribute, align to selection, rulers, draggable guides, marquee select | Align three boxes in two clicks |
 | **C ✅** | `feature/masters-and-library` | Master pages, style library, brand kit, templates gallery, save page as template | New edition from a saved template in one click |
-| D | `feature/linked-frames` | Continue a story in another tile, automatic "continued on page N" and "continued from", overset resolution | A long story flows across two pages with jump lines |
+| **D ✅** | `feature/linked-frames` | Continue a story in another tile, automatic "continued on page N" and "continued from", overset resolution | A long story flows across two pages with jump lines |
 | E | `feature/image-tools` | Asset library, crop with focal point, rotate, greyscale, captions and credits | Reuse yesterday's photo, crop to a tile |
 | F | `feature/preflight-export` | Preflight panel, Chromium PDF companion, bleed and crop marks, per-page PNG, edition bundle backup | One-click A3 PDF with a clean preflight |
 | G | `feature/workflow` | Story status, versions, roles, comments, approvals | Reporter to editor to designer handoff |

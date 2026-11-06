@@ -106,6 +106,16 @@ A page can also hold **free objects**: text boxes, rectangles, ellipses, lines a
 - **Rulers** run along the top and left of the page in millimetres. **Drag from a ruler** to pull out a guide; drag a guide to move it, or drag it off the page to delete it. Objects snap to ruler guides. Guides are saved per page, are never printed, and Clear ruler guides removes them all.
 - All of these are single undo steps.
 
+### Continued stories (linked frames)
+
+When a story does not fit its tile, **carry it on** in another tile: select the tile, choose a page in the Continue story panel and press **Continue story**. A new tile is added along the bottom of that page (continuing into an existing empty tile is also supported by the use case).
+
+- The story is **never cut in storage**. At display time the text is divided across the chain of tiles from each tile's real size (`domain/layout/flow.ts`): each tile takes as much as fits, a long paragraph may be split between two tiles at a space (never leaving slivers), and the last tile takes the rest. Edit or resize a tile and the story re-flows. Bold, italic and underline survive the split.
+- The first tile keeps the headline, deck, byline and photo. Later tiles open with a **"Continued from page N"** line and a small repeat of the headline. A **"Continues on page N"** jump line is printed automatically at the end of every tile but the last; a jump line typed by hand wins.
+- **Remove the continuation** deletes the carry-on tile and puts the text back in the original tile. Removing or clearing a tile in the middle of a chain joins the tiles around it; deleting the story, or giving a tile another story, drops the links.
+- A continuation whose source no longer holds the same story is drawn empty rather than repeating the story.
+- **Limits:** the carry-on tile's size is an estimate, so it may need enlarging (the red "does not fit" bar says so) or continuing again; there is no automatic "continue to the next free page" yet.
+
 ### Masters
 
 A **master** holds free objects that repeat on every page that uses it (a header rule, a running label, a watermark). Master objects are drawn **behind** the page's tiles and objects, in the editor, preview and print. Pick a master for the page from the Master menu, press **New master** to move the page's current objects onto a new one, or **Edit master** to change it: the canvas then shows only the master's objects, and the change appears on every page that uses it. Deleting a master just stops pages showing it.

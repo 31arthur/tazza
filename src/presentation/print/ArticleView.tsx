@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, type CSSProperties, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { inlineText, type Article, type BodyNode } from '@domain/entities/Article';
+import type { FlowSlice } from '@domain/layout/flow';
 import { PALETTE, RULE_MM, resolveStyle, type HeadlineFont } from '@domain/layout/style';
 import type { Leaf } from '@domain/layout/tree';
 import { bodyPt, headlinePt, heroMinForLeaf } from '@domain/services/CopyfitEstimator';
@@ -16,6 +18,8 @@ interface Props {
   leaf: Leaf;
   /** When given, called whenever the story starts or stops overflowing its tile. */
   onOverflowChange?: ((overflowing: boolean) => void) | undefined;
+  /** For a story continued across tiles: the part of the text this tile shows. */
+  slice?: FlowSlice | undefined;
 }
 
 const HEADLINE_FONT: Record<HeadlineFont, CSSProperties> = {
@@ -125,7 +129,18 @@ function Node({
  * picture that grows or shrinks to use the tile's height, then the text in balanced columns
  * with a bold dateline run-in and an optional jump line.
  */
-export function ArticleView({ article, cols, leaf, onOverflowChange }: Props) {
+export function ArticleView({ article: story, cols, leaf, onOverflowChange, slice }: Props) {
+  const { t } = useTranslation();
+  // A continued story shows only its share of the text; tiles after the first drop the headline,
+  // deck, byline and photo, and instead open with "continued from page N" and a small jump head.
+  const article: Article = slice
+    ? {
+        ...story,
+        body: slice.body,
+        ...(!slice.first && { headline: '', subHeadline: '', byline: '', dateline: '' }),
+      }
+    : story;
+  const continuation = slice !== undefined && !slice.first;
   const rootRef = useRef<HTMLElement>(null);
   const lastOverflow = useRef(false);
 
@@ -153,6 +168,13 @@ export function ArticleView({ article, cols, leaf, onOverflowChange }: Props) {
 
   const look = resolveStyle(leaf);
   const accent = PALETTE[look.accent];
+  // A jump line typed by hand wins; otherwise a continued story gets one automatically.
+  const jumpText =
+    look.jump.trim() !== ''
+      ? look.jump
+      : slice?.continuedToPage !== undefined
+        ? t('flow.continuesOn', { page: slice.continuedToPage })
+        : '';
   const heroIndex = article.body.findIndex((n) => n.type === 'image');
   const hero = heroIndex >= 0 ? article.body[heroIndex] : undefined;
   const bodyNodes = article.body.filter((_, i) => i !== heroIndex);
@@ -238,7 +260,38 @@ export function ArticleView({ article, cols, leaf, onOverflowChange }: Props) {
         position: 'relative',
       }}
     >
-      {look.kicker.trim() !== '' && (
+      {continuation && (
+        <>
+          <div
+            style={{
+              flex: 'none',
+              marginBottom: '1mm',
+              borderBottom: `${RULE_MM.standard}mm solid ${accent}`,
+              color: accent,
+              fontFamily: 'var(--font-ui)',
+              fontSize: '7.5pt',
+              fontWeight: 800,
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+            }}
+          >
+            {t('flow.continuedFrom', { page: slice?.continuedFromPage })}
+          </div>
+          <h3
+            lang={detectLanguage(story.headline)}
+            style={{
+              flex: 'none',
+              margin: '0 0 1.5mm',
+              fontSize: '12pt',
+              lineHeight: 1.2,
+              ...HEADLINE_FONT.display,
+            }}
+          >
+            {story.headline}
+          </h3>
+        </>
+      )}
+      {look.kicker.trim() !== '' && !continuation && (
         <div
           lang={detectLanguage(look.kicker)}
           style={{
@@ -325,7 +378,7 @@ export function ArticleView({ article, cols, leaf, onOverflowChange }: Props) {
           />
         ))}
       </div>
-      {look.jump.trim() !== '' && (
+      {jumpText !== '' && (
         <div
           style={{
             position: 'absolute',
@@ -340,7 +393,7 @@ export function ArticleView({ article, cols, leaf, onOverflowChange }: Props) {
             fontWeight: 800,
           }}
         >
-          {look.jump}
+          {jumpText}
         </div>
       )}
     </article>

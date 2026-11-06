@@ -98,31 +98,57 @@ export const estimateElementMm = (element: Element, cols: number, leaf: Leaf): n
   }
 };
 
+/** Height of a continuation's "continued from page N" label and its small jump headline. */
+export const CONTINUED_HEAD_MM = 13;
+/** Room kept for the "continues on page N" jump line at the bottom of a tile. */
+export const JUMP_LINE_MM = 6;
+
+/** Characters per line and line height (mm) for body text of this language in one column. */
+export const bodyLineMetrics = (
+  text: string,
+  role: SlotRole,
+): { charsPerLine: number; lineMm: number } => {
+  const te = detectLanguage(text) === 'te';
+  const sizeMm = bodyPt(role) * PT_MM;
+  return {
+    charsPerLine: Math.max(4, Math.floor(COLUMN_WIDTH_MM / (sizeMm * (te ? 0.45 : 0.54)))),
+    lineMm: sizeMm * (te ? 1.6 : 1.38),
+  };
+};
+
+/** Everything above the body: headline, kicker, deck, byline and the lead photo. */
+export const estimateHeaderMm = (article: Article, cols: number, leaf: Leaf): number => {
+  const style = resolveStyle(leaf);
+  const images = article.body.filter((n) => n.type === 'image').length;
+  const overPhoto = style.headlineOverPhoto && images > 0;
+  const head = overPhoto ? 0 : estimateHeadlineMm(article, cols, leaf);
+  const kicker = style.kicker.trim() === '' ? 0 : KICKER_MM;
+  const sub =
+    textHeightMm(article.subHeadline, spanWidthMm(cols), 11, false) + (style.deckBand ? 3 : 0);
+  const byline = article.byline.trim() === '' ? 0 : 5;
+  const hero = images > 0 ? heroMinForLeaf(article, cols, leaf) + CAPTION_MM : 0;
+  return VERTICAL_PAD_MM + head + kicker + sub + byline + hero;
+};
+
 /** Estimated height in mm of a story (or element) set across `cols` columns in a tile. */
 export const estimateStoryMm = (article: Article | undefined, cols: number, leaf: Leaf): number => {
   if (leaf.element) return estimateElementMm(leaf.element, cols, leaf);
   if (!article) return EMPTY_SLOT_MM;
-  const style = resolveStyle(leaf);
-  const width = spanWidthMm(cols);
   const images = article.body.filter((n) => n.type === 'image').length;
-  const overPhoto = style.headlineOverPhoto && images > 0;
-
-  const head = overPhoto ? 0 : estimateHeadlineMm(article, cols, leaf);
-  const kicker = style.kicker.trim() === '' ? 0 : KICKER_MM;
-  const sub =
-    textHeightMm(article.subHeadline, width, 11, false) + (style.deckBand ? 3 : 0);
-  const byline = article.byline.trim() === '' ? 0 : 5;
-
-  const hero = images > 0 ? heroMinForLeaf(article, cols, leaf) + CAPTION_MM : 0;
   const inlineImages = Math.max(0, images - 1) * (COLUMN_WIDTH_MM * 0.66 + 12);
 
   const bodyMm = bodyParagraphs(article.body).reduce(
     (sum, p) => sum + textHeightMm(p, COLUMN_WIDTH_MM, bodyPt(leaf.role), false) + 1.2,
     0,
   );
+  // A story split over several tiles shares its text between them; assume two tiles.
+  const continued = leaf.continuesFrom !== undefined || leaf.continuesTo !== undefined;
+  const share = continued ? 0.5 : 1;
   // Columns never balance perfectly and images cannot split, so keep a safety margin.
-  const flow = ((bodyMm + inlineImages) / cols) * 1.2 + 6;
-  return VERTICAL_PAD_MM + head + kicker + sub + byline + hero + flow;
+  const flow = (((bodyMm + inlineImages) * share) / cols) * 1.2 + 6;
+
+  if (leaf.continuesFrom !== undefined) return VERTICAL_PAD_MM + CONTINUED_HEAD_MM + flow;
+  return estimateHeaderMm(article, cols, leaf) + flow;
 };
 
 /** How much a story needs: used to rank stories for the biggest slots. */
