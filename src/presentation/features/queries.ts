@@ -4,6 +4,8 @@ import { toast } from 'sonner';
 import type { Edition } from '@domain/entities/Edition';
 import type { Element, ElementKind } from '@domain/layout/element';
 import type { AlignMode, ArrangeOp, ObjectPatch, ObjectTool } from '@domain/layout/objects';
+import type { AlignTarget, DistributeAxis, IdPatch } from '@domain/layout/selection';
+import type { Guide } from '@domain/layout/snapping';
 import type { TemplateId } from '@domain/layout/templates';
 import type { LeafStyle, Masthead } from '@domain/layout/style';
 import type { SlotRole } from '@domain/layout/tree';
@@ -100,23 +102,44 @@ export function useLayoutActions() {
       });
       return ok ? id : undefined;
     },
-    duplicateObject: async (pageNumber: number, objectId: string): Promise<string | undefined> => {
-      let id: string | undefined;
+    /** Duplicates objects; resolves to the ids of the copies. */
+    duplicateObjects: async (
+      pageNumber: number,
+      objectIds: readonly string[],
+    ): Promise<string[] | undefined> => {
+      let ids: string[] | undefined;
       const ok = await apply(async () => {
-        const result = await uc.duplicateObject.execute({ editionId, pageNumber, objectId });
-        id = result.objectId;
+        const result = await uc.duplicateObjects.execute({ editionId, pageNumber, objectIds });
+        ids = result.objectIds;
         return result.edition;
       });
-      return ok ? id : undefined;
+      return ok ? ids : undefined;
     },
-    updateObject: (pageNumber: number, objectId: string, patch: ObjectPatch) =>
-      apply(() => uc.updateObject.execute({ editionId, pageNumber, objectId, patch })),
-    removeObject: (pageNumber: number, objectId: string) =>
-      apply(() => uc.removeObject.execute({ editionId, pageNumber, objectId })),
-    reorderObject: (pageNumber: number, objectId: string, op: ArrangeOp) =>
-      apply(() => uc.reorderObject.execute({ editionId, pageNumber, objectId, op })),
-    alignObject: (pageNumber: number, objectId: string, mode: AlignMode, to: 'page' | 'live') =>
-      apply(() => uc.alignObject.execute({ editionId, pageNumber, objectId, mode, to })),
+    updateObjects: (pageNumber: number, updates: readonly IdPatch[]) =>
+      apply(() => uc.updateObjects.execute({ editionId, pageNumber, updates })),
+    updateObject: (pageNumber: number, id: string, patch: ObjectPatch) =>
+      apply(() => uc.updateObjects.execute({ editionId, pageNumber, updates: [{ id, patch }] })),
+    removeObjects: (pageNumber: number, objectIds: readonly string[]) =>
+      apply(() => uc.removeObjects.execute({ editionId, pageNumber, objectIds })),
+    reorderObjects: (pageNumber: number, objectIds: readonly string[], op: ArrangeOp) =>
+      apply(() => uc.reorderObjects.execute({ editionId, pageNumber, objectIds, op })),
+    alignObjects: (
+      pageNumber: number,
+      objectIds: readonly string[],
+      mode: AlignMode,
+      to: AlignTarget,
+    ) => apply(() => uc.alignObjects.execute({ editionId, pageNumber, objectIds, mode, to })),
+    distributeObjects: (
+      pageNumber: number,
+      objectIds: readonly string[],
+      axis: DistributeAxis,
+    ) => apply(() => uc.distributeObjects.execute({ editionId, pageNumber, objectIds, axis })),
+    groupObjects: (pageNumber: number, objectIds: readonly string[]) =>
+      apply(() => uc.groupObjects.execute({ editionId, pageNumber, objectIds })),
+    ungroupObjects: (pageNumber: number, objectIds: readonly string[]) =>
+      apply(() => uc.ungroupObjects.execute({ editionId, pageNumber, objectIds })),
+    setGuides: (pageNumber: number, guides: readonly Guide[]) =>
+      apply(() => uc.setGuides.execute({ editionId, pageNumber, guides })),
     autoFitPage: (pageNumber: number) =>
       apply(() => uc.autoFitPage.execute({ editionId, pageNumber })),
     clearSlot: (pageNumber: number, leafId: string) =>

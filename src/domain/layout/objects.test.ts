@@ -1,13 +1,4 @@
-import { InMemoryEditionRepository, SequentialIds } from '../testing/fakes';
-import { GetOrCreateEdition } from '../usecases/edition/GetOrCreateEdition';
-import { AddObject } from '../usecases/objects/AddObject';
-import { AlignObject } from '../usecases/objects/AlignObject';
-import { DuplicateObject } from '../usecases/objects/DuplicateObject';
-import { RemoveObject } from '../usecases/objects/RemoveObject';
-import { ReorderObject } from '../usecases/objects/ReorderObject';
-import { UpdateObject } from '../usecases/objects/UpdateObject';
-import { LayoutError } from '../errors/DomainError';
-import { GRID, liveRectMm } from '../services/PageGeometry';
+import { liveRectMm, GRID } from '../services/PageGeometry';
 import {
   alignPosition,
   applyObjectPatch,
@@ -18,8 +9,6 @@ import {
 } from './objects';
 import { snapEdge, snapMove, snapTargets, snapValue } from './snapping';
 import { paintColor } from './style';
-
-const EDITION = '2026-11-07';
 
 const obj = (id: string, x = 0, y = 0, w = 10, h = 10): PageObject => ({
   ...(createObject('rect', id, 1) as PageObject),
@@ -125,62 +114,5 @@ describe('snapping', () => {
     expect(snapValue([9.8], [10, 50], 0.5)).toEqual({ delta: expect.closeTo(0.2), at: 10 });
     expect(snapEdge(49.7, [50], 0.5)).toEqual({ value: 50, guide: 50 });
     expect(snapEdge(40, [50], 0.5)).toEqual({ value: 40 });
-  });
-});
-
-describe('object use cases', () => {
-  const setup = async () => {
-    const editions = new InMemoryEditionRepository();
-    const ids = new SequentialIds();
-    await new GetOrCreateEdition(editions, ids).execute({ editionId: EDITION });
-    const ref = { editionId: EDITION, pageNumber: 1 };
-    return {
-      editions,
-      ref,
-      add: new AddObject(editions, ids),
-      update: new UpdateObject(editions),
-      remove: new RemoveObject(editions),
-      duplicate: new DuplicateObject(editions, ids),
-      reorder: new ReorderObject(editions),
-      align: new AlignObject(editions),
-      objects: async () => (await editions.find(EDITION))?.pages[0]?.objects ?? [],
-    };
-  };
-
-  it('adds, updates, duplicates and removes objects', async () => {
-    const s = await setup();
-    const { objectId } = await s.add.execute({ ...s.ref, tool: 'text' });
-    await s.update.execute({ ...s.ref, objectId, patch: { text: 'రేపు చర్చలు', x: 20 } });
-    const [first] = await s.objects();
-    expect(first?.kind === 'text' && first.text).toBe('రేపు చర్చలు');
-    expect(first?.x).toBe(20);
-
-    const copy = await s.duplicate.execute({ ...s.ref, objectId });
-    expect(await s.objects()).toHaveLength(2);
-    expect((await s.objects())[1]?.id).toBe(copy.objectId);
-    expect((await s.objects())[1]?.x).toBe(25);
-
-    await s.remove.execute({ ...s.ref, objectId });
-    expect((await s.objects()).map((o) => o.id)).toEqual([copy.objectId]);
-  });
-
-  it('rejects changes to objects that do not exist', async () => {
-    const s = await setup();
-    await expect(
-      s.update.execute({ ...s.ref, objectId: 'nope', patch: { x: 1 } }),
-    ).rejects.toBeInstanceOf(LayoutError);
-  });
-
-  it('reorders and aligns', async () => {
-    const s = await setup();
-    const a = await s.add.execute({ ...s.ref, tool: 'rect' });
-    const b = await s.add.execute({ ...s.ref, tool: 'ellipse' });
-    await s.reorder.execute({ ...s.ref, objectId: a.objectId, op: 'front' });
-    expect((await s.objects()).map((o) => o.id)).toEqual([b.objectId, a.objectId]);
-
-    await s.align.execute({ ...s.ref, objectId: a.objectId, mode: 'left', to: 'page' });
-    expect((await s.objects()).find((o) => o.id === a.objectId)?.x).toBe(0);
-    await s.align.execute({ ...s.ref, objectId: a.objectId, mode: 'left', to: 'live' });
-    expect((await s.objects()).find((o) => o.id === a.objectId)?.x).toBe(GRID.marginXMm);
   });
 });

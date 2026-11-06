@@ -23,8 +23,8 @@ interface Props {
   articles: ReadonlyMap<string, Article>;
   /** Override how a tile is drawn (the layout canvas adds selection and dragging). */
   renderLeaf?: ((args: RenderLeafArgs) => ReactNode) | undefined;
-  /** An unsaved change to one free object while it is being dragged or resized. */
-  objectsDraft?: { id: string; patch: ObjectPatch } | undefined;
+  /** Unsaved changes to free objects while they are being dragged or resized. */
+  objectsDraft?: ReadonlyMap<string, ObjectPatch> | undefined;
   /** Drawn on top of the page in page coordinates (drop highlights, dividers). */
   overlay?: ((leaves: readonly PlacedLeaf[]) => ReactNode) | undefined;
 }

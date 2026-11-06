@@ -97,8 +97,8 @@ function ObjectView({ object: o }: { object: PageObject }) {
 
 interface Props {
   objects: readonly PageObject[];
-  /** A live, not yet saved change made while dragging; the saved object is untouched. */
-  draft?: { id: string; patch: ObjectPatch } | undefined;
+  /** Live, not yet saved changes made while dragging; the saved objects are untouched. */
+  draft?: ReadonlyMap<string, ObjectPatch> | undefined;
 }
 
 /** Free objects, bottom to top, drawn above the tiles. Hidden objects are not drawn. */
@@ -107,12 +107,10 @@ export function ObjectsLayer({ objects, draft }: Props) {
     <>
       {objects
         .filter((o) => !o.hidden)
-        .map((o) => (
-          <ObjectView
-            key={o.id}
-            object={draft && draft.id === o.id ? applyObjectPatch(o, draft.patch) : o}
-          />
-        ))}
+        .map((o) => {
+          const patch = draft?.get(o.id);
+          return <ObjectView key={o.id} object={patch ? applyObjectPatch(o, patch) : o} />;
+        })}
     </>
   );
 }

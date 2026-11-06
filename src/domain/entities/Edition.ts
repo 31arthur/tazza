@@ -1,6 +1,7 @@
 import { LayoutError } from '../errors/DomainError';
 import type { Masthead } from '../layout/style';
 import type { PageObject } from '../layout/objects';
+import type { Guide } from '../layout/snapping';
 import { articleIdsOf, clearArticle, type LayoutNode } from '../layout/tree';
 
 export interface Page {
@@ -8,6 +9,8 @@ export interface Page {
   readonly layout: LayoutNode;
   /** Free objects drawn above the tiles, bottom to top. They never affect how stories fit. */
   readonly objects?: readonly PageObject[];
+  /** Ruler guides the designer dragged out; objects snap to them. */
+  readonly guides?: readonly Guide[];
 }
 
 /** One newspaper edition per calendar date; its id is the ISO date (YYYY-MM-DD). */

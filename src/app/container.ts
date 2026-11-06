@@ -17,11 +17,15 @@ import { RestoreEdition } from '@domain/usecases/edition/RestoreEdition';
 import { UpdateMasthead } from '@domain/usecases/edition/UpdateMasthead';
 import type { UseCases } from '@domain/usecases';
 import { AddObject } from '@domain/usecases/objects/AddObject';
-import { AlignObject } from '@domain/usecases/objects/AlignObject';
-import { DuplicateObject } from '@domain/usecases/objects/DuplicateObject';
-import { RemoveObject } from '@domain/usecases/objects/RemoveObject';
-import { ReorderObject } from '@domain/usecases/objects/ReorderObject';
-import { UpdateObject } from '@domain/usecases/objects/UpdateObject';
+import { AlignObjects } from '@domain/usecases/objects/AlignObjects';
+import { DistributeObjects } from '@domain/usecases/objects/DistributeObjects';
+import { DuplicateObjects } from '@domain/usecases/objects/DuplicateObjects';
+import { GroupObjects } from '@domain/usecases/objects/GroupObjects';
+import { RemoveObjects } from '@domain/usecases/objects/RemoveObjects';
+import { ReorderObjects } from '@domain/usecases/objects/ReorderObjects';
+import { SetGuides } from '@domain/usecases/objects/SetGuides';
+import { UngroupObjects } from '@domain/usecases/objects/UngroupObjects';
+import { UpdateObjects } from '@domain/usecases/objects/UpdateObjects';
 import { AddElement } from '@domain/usecases/layout/AddElement';
 import { AddPage } from '@domain/usecases/layout/AddPage';
 import { ApplyTemplate } from '@domain/usecases/layout/ApplyTemplate';
@@ -71,11 +75,15 @@ export const createContainer = (): Container => {
     dropArticle: new DropArticle(articles, editions, ids),
     addElement: new AddElement(articles, editions, ids),
     addObject: new AddObject(editions, ids),
-    updateObject: new UpdateObject(editions),
-    removeObject: new RemoveObject(editions),
-    duplicateObject: new DuplicateObject(editions, ids),
-    reorderObject: new ReorderObject(editions),
-    alignObject: new AlignObject(editions),
+    updateObjects: new UpdateObjects(editions),
+    removeObjects: new RemoveObjects(editions),
+    duplicateObjects: new DuplicateObjects(editions, ids),
+    reorderObjects: new ReorderObjects(editions),
+    alignObjects: new AlignObjects(editions),
+    distributeObjects: new DistributeObjects(editions),
+    groupObjects: new GroupObjects(editions, ids),
+    ungroupObjects: new UngroupObjects(editions),
+    setGuides: new SetGuides(editions),
     updateElement: new UpdateElement(articles, editions),
     placeArticle: new PlaceArticle(articles, editions, ids),
     clearSlot: new ClearSlot(articles, editions),
