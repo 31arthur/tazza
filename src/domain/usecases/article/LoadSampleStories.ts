@@ -62,6 +62,7 @@ export class LoadSampleStories {
         byline: story.byline,
         ...(story.dateline && { dateline: story.dateline }),
         body,
+        status: 'approved',
         // Offset keeps the writing order stable even though all are created in the same instant.
         createdAt: base + index,
         updatedAt: base + index,

@@ -19,6 +19,7 @@ export class CreateArticle {
       subHeadline: '',
       byline: '',
       body: [{ type: 'paragraph', children: [] }],
+      status: 'draft',
       createdAt: now,
       updatedAt: now,
     };

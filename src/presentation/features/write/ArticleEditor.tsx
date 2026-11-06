@@ -4,18 +4,22 @@ import StarterKit from '@tiptap/starter-kit';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { wordCount, bodyParagraphs, type Article, type ArticlePatch } from '@domain/entities/Article';
+import { wordCount, bodyParagraphs, statusOf, type Article, type ArticlePatch } from '@domain/entities/Article';
+import { canEditText } from '@domain/entities/Workflow';
 import { detectLanguage } from '@domain/services/detectLanguage';
 import { Input } from '../../components/ui/input';
 import { useUseCases } from '../../hooks/AppContext';
 import { isImageFile, prepareImage } from '../../lib/image';
 import { AssetPicker } from '../assets/AssetPicker';
+import { useActor } from '../../state/workStore';
 import { articlesKey } from '../queries';
 import { bodyToTiptap, tiptapToBody } from './bodyMapper';
 import { EditorToolbar } from './EditorToolbar';
 import { ImageNode } from './extensions/ImageNode';
 import { LanguageAttr } from './extensions/LanguageAttr';
+import { StatusBadge } from './StatusBadge';
 import { useAutosave } from './useAutosave';
+import { WorkflowPanel } from './WorkflowPanel';
 
 interface Props {
   article: Article;
@@ -28,15 +32,17 @@ export function ArticleEditor({ article }: Props) {
   const { t } = useTranslation();
   const { updateArticle, saveAsset } = useUseCases();
   const queryClient = useQueryClient();
+  const actor = useActor();
+  const readOnly = !canEditText(actor.role, statusOf(article));
 
   const save = useCallback(
     async (patch: ArticlePatch) => {
-      await updateArticle.execute({ id: article.id, patch });
+      await updateArticle.execute({ id: article.id, patch, actor });
       await queryClient.invalidateQueries({ queryKey: articlesKey(article.editionId) });
     },
-    [updateArticle, article.id, article.editionId, queryClient],
+    [updateArticle, article.id, article.editionId, queryClient, actor],
   );
-  const { schedule, status } = useAutosave<ArticlePatch>(save);
+  const { schedule, flush, status } = useAutosave<ArticlePatch>(save);
 
   const fileInput = useRef<HTMLInputElement>(null);
   const editorRef = useRef<Editor | null>(null);
@@ -74,6 +80,7 @@ export function ArticleEditor({ article }: Props) {
       LanguageAttr,
     ],
     content: bodyToTiptap(article.body),
+    editable: !readOnly,
     onUpdate: ({ editor: e }) => schedule({ body: tiptapToBody(e.getJSON()) }),
     editorProps: {
       handlePaste: (_view, event) => {
@@ -95,6 +102,10 @@ export function ArticleEditor({ article }: Props) {
     editorRef.current = editor;
   }, [editor]);
 
+  useEffect(() => {
+    editor?.setEditable(!readOnly);
+  }, [editor, readOnly]);
+
   const onFileChosen =(e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
@@ -106,9 +117,14 @@ export function ArticleEditor({ article }: Props) {
   );
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 p-6">
+    <div className="mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)_17rem] items-start gap-6 p-6">
+    <div className="flex min-w-0 flex-col gap-4">
       <div className="flex items-center justify-between text-xs text-muted-foreground" aria-live="polite">
-        <span>{t('write.words', { count: words })}</span>
+        <span className="flex items-center gap-2">
+          <StatusBadge status={statusOf(article)} />
+          {t('write.words', { count: words })}
+          {readOnly && <span>· {t('workflow.readOnly')}</span>}
+        </span>
         <span>{t(`save.${status}`)}</span>
       </div>
 
@@ -119,6 +135,7 @@ export function ArticleEditor({ article }: Props) {
           lang={detectLanguage(article.headline)}
           placeholder={t('write.headline')}
           aria-label={t('write.headline')}
+          readOnly={readOnly}
           onChange={(e) => schedule({ headline: e.target.value })}
           className={`${titleClass} headline text-4xl`}
           style={{ lineHeight: 1.3 }}
@@ -129,6 +146,7 @@ export function ArticleEditor({ article }: Props) {
           lang={detectLanguage(article.subHeadline)}
           placeholder={t('write.subHeadline')}
           aria-label={t('write.subHeadline')}
+          readOnly={readOnly}
           onChange={(e) => schedule({ subHeadline: e.target.value })}
           className={`${titleClass} text-xl font-semibold text-neutral-700`}
           style={{ lineHeight: 1.5 }}
@@ -138,6 +156,7 @@ export function ArticleEditor({ article }: Props) {
           lang={detectLanguage(article.dateline ?? '')}
           placeholder={t('write.dateline')}
           aria-label={t('write.dateline')}
+          readOnly={readOnly}
           onChange={(e) => schedule({ dateline: e.target.value })}
           className="h-8 border-0 border-b bg-transparent px-0 text-sm font-semibold shadow-none focus-visible:ring-0"
         />
@@ -146,12 +165,13 @@ export function ArticleEditor({ article }: Props) {
           lang={detectLanguage(article.byline)}
           placeholder={t('write.byline')}
           aria-label={t('write.byline')}
+          readOnly={readOnly}
           onChange={(e) => schedule({ byline: e.target.value })}
           className="h-8 border-0 border-b bg-transparent px-0 text-sm shadow-none focus-visible:ring-0"
         />
       </div>
 
-      {editor && <EditorToolbar editor={editor} onPickImage={() => fileInput.current?.click()} onPickFromLibrary={() => setPicking(true)} />}
+      {editor && !readOnly && <EditorToolbar editor={editor} onPickImage={() => fileInput.current?.click()} onPickFromLibrary={() => setPicking(true)} />}
       {picking && (
         <AssetPicker
           onClose={() => setPicking(false)}
@@ -180,6 +200,8 @@ export function ArticleEditor({ article }: Props) {
       <div className="paper editor-surface min-h-96 rounded-md border bg-white p-6 shadow-sm">
         <EditorContent editor={editor} aria-label={t('write.body')} />
       </div>
+    </div>
+    <WorkflowPanel article={article} flush={flush} />
     </div>
   );
 }

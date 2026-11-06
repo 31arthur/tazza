@@ -1,4 +1,6 @@
-import type { Article, ArticlePatch } from '../../entities/Article';
+import { statusOf, type Article, type ArticlePatch } from '../../entities/Article';
+import { canEditText, type Actor } from '../../entities/Workflow';
+import { WorkflowError } from '../../errors/DomainError';
 import type { ArticleRepository } from '../../ports/repositories/ArticleRepository';
 import type { Clock } from '../../ports/services/Clock';
 
@@ -8,8 +10,19 @@ export class UpdateArticle {
     private readonly clock: Clock,
   ) {}
 
-  async execute({ id, patch }: { id: string; patch: ArticlePatch }): Promise<Article> {
+  async execute({
+    id,
+    patch,
+    actor,
+  }: {
+    id: string;
+    patch: ArticlePatch;
+    actor?: Actor;
+  }): Promise<Article> {
     const current = await this.articles.getById(id);
+    if (actor && !canEditText(actor.role, statusOf(current))) {
+      throw new WorkflowError(`A ${actor.role} cannot change a story that is ${statusOf(current)}.`);
+    }
     const updated: Article = {
       ...current,
       ...patch,

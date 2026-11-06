@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { LanguageSwitcher } from '../../components/LanguageSwitcher';
 import { cn } from '../../lib/utils';
+import { ROLES } from '@domain/entities/Workflow';
 import { useEditionStore } from '../../state/editionStore';
+import { useWorkStore } from '../../state/workStore';
 
 const NAV = [
   { to: '/write', key: 'write' },
@@ -18,6 +20,7 @@ export function AppShell() {
   const location = useLocation();
   const editionId = useEditionStore((s) => s.editionId);
   const setEditionId = useEditionStore((s) => s.setEditionId);
+  const { name, role, setName, setRole } = useWorkStore();
 
   return (
     <div className="flex h-screen flex-col print:block print:h-auto">
@@ -45,8 +48,29 @@ export function AppShell() {
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-4">
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={t('workflow.yourName')}
+              aria-label={t('workflow.yourName')}
+              className="h-9 w-24 rounded-md border bg-transparent px-2 text-foreground"
+            />
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as typeof role)}
+              aria-label={t('workflow.workingAs')}
+              className="h-9 rounded-md border bg-transparent px-2 text-foreground"
+            >
+              {ROLES.map((r) => (
+                <option key={r} value={r}>
+                  {t(`workflow.roles.${r}`)}
+                </option>
+              ))}
+            </select>
+          </div>
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
-            {t('edition.date')}
+            <span className="hidden xl:inline">{t('edition.date')}</span>
             <input
               type="date"
               value={editionId}

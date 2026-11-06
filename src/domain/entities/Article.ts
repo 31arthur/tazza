@@ -1,3 +1,4 @@
+import type { ArticleNote, ArticleStatus, ArticleVersion } from './Workflow';
 import type { ImageAdjust } from './ImageAdjust';
 
 export type Mark = 'bold' | 'italic' | 'underline';
@@ -39,7 +40,13 @@ export interface Article {
   readonly body: ArticleBody;
   readonly createdAt: number;
   readonly updatedAt: number;
+  /** Missing on stories written before the workflow existed: those count as drafts. */
+  readonly status?: ArticleStatus;
+  readonly notes?: readonly ArticleNote[];
+  readonly versions?: readonly ArticleVersion[];
 }
+
+export const statusOf = (article: Article): ArticleStatus => article.status ?? 'draft';
 
 export type ArticlePatch = Partial<Pick<Article, 'headline' | 'subHeadline' | 'byline' | 'dateline' | 'body'>>;
 

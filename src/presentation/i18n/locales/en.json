@@ -381,7 +381,9 @@
       "emptyText": "A text object is empty.",
       "offPage": "An object is completely outside the page.",
       "shortOfBleed": "An object reaches the page edge but stops short of the {{bleed}} mm bleed; a white sliver may show after trimming.",
-      "fontMissing": "The font {{family}} did not load; text would print in a different typeface."
+      "fontMissing": "The font {{family}} did not load; text would print in a different typeface.",
+      "notApproved": "A story is still {{status}}, not approved.",
+      "openNotes": "A story has {{count}} unresolved comment(s)."
     }
   },
   "export": {
@@ -392,5 +394,39 @@
     "restore": "Restore edition from a backup file",
     "restored": "Edition restored.",
     "noCompanion": "One-click export needs the Tazza dev server with Chrome, Edge or Chromium installed. Use Print / Save as PDF instead."
+  },
+  "workflow": {
+    "title": "Review",
+    "status": {
+      "draft": "Draft",
+      "review": "In review",
+      "approved": "Approved"
+    },
+    "roles": {
+      "reporter": "Reporter",
+      "editor": "Editor",
+      "designer": "Designer"
+    },
+    "yourName": "Your name",
+    "workingAs": "Working as",
+    "readOnly": "read only for your role now",
+    "actions": {
+      "submit": "Submit for review",
+      "approve": "Approve",
+      "sendBack": "Send back to reporter",
+      "reopen": "Reopen for changes"
+    },
+    "sendBackPrompt": "What needs changing?",
+    "noMoves": "A {{role}} cannot move this story on from here.",
+    "comments": "Comments",
+    "commentPlaceholder": "Write a comment (Ctrl+Enter to send)",
+    "addComment": "Add comment",
+    "resolve": "Resolve",
+    "reopenNote": "Reopen",
+    "versions": "Versions",
+    "saveVersion": "Save a version",
+    "restoreVersion": "Restore this version",
+    "confirmRestore": "Replace the story text with this version? The current text is kept as a version.",
+    "noVersions": "No saved versions yet."
   }
 }

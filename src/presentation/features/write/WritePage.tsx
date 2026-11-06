@@ -84,7 +84,7 @@ export function WritePage() {
       </aside>
       <section className="overflow-y-auto">
         {selected ? (
-          <ArticleEditor key={selected.id} article={selected} />
+          <ArticleEditor key={`${selected.id}-${selected.versions?.length ?? 0}-${selected.status ?? ''}`} article={selected} />
         ) : (
           <p className="p-10 text-center text-muted-foreground">{t('write.select')}</p>
         )}

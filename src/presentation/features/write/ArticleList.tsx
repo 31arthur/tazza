@@ -1,11 +1,12 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { FilePlus2, Sparkles, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { bodyParagraphs, type Article } from '@domain/entities/Article';
+import { bodyParagraphs, statusOf, type Article } from '@domain/entities/Article';
 import { detectLanguage } from '@domain/services/detectLanguage';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { cn } from '../../lib/utils';
+import { StatusBadge } from './StatusBadge';
 
 interface Props {
   articles: readonly Article[];
@@ -73,6 +74,7 @@ export function ArticleList({
                       >
                         {title === '' ? t('write.untitled') : title}
                       </div>
+                      <StatusBadge status={statusOf(article)} className="mt-1" />
                       {snippet !== '' && (
                         <div
                           lang={detectLanguage(snippet)}

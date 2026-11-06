@@ -49,8 +49,8 @@ Status: ✅ done (Phase A shipped) · ⏭ planned · 💭 later.
 | Rich-text story editor, images, captions, autosave | ✅ |
 | Automatic Telugu/English detection, NFC | ✅ |
 | Dateline, kicker, deck, byline | ✅ |
-| Story status workflow (draft, review, approved) | ⏭ |
-| Version history per story | ⏭ |
+| Story status workflow (draft, review, approved) | ✅ |
+| Version history per story (last 20, restore) | ✅ |
 | Phonetic Telugu typing (English letters to Telugu) | ⏭ |
 | Spell check (English now, Telugu word list later) | 💭 |
 
@@ -102,7 +102,8 @@ Status: ✅ done (Phase A shipped) · ⏭ planned · 💭 later.
 |---|---|
 | Local-first storage | ✅ |
 | Edition export/import bundle (backup) | ⏭ |
-| Accounts, roles, comments, approvals | 💭 |
+| Roles (reporter, editor, designer), comments, approvals on this computer | ✅ |
+| Accounts and sign-in | 💭 |
 | Real-time collaboration, cloud sync | 💭 |
 | PWA/offline install | ⏭ |
 | Desktop shell (Tauri/Electron) | 💭 |

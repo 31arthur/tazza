@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { Asset, AssetMeta } from '@domain/entities/Asset';
 import type { Edition } from '@domain/entities/Edition';
+import type { ArticleStatus } from '@domain/entities/Workflow';
 import type { Element, ElementKind } from '@domain/layout/element';
 import type { AlignMode, ArrangeOp, ObjectPatch, ObjectTool } from '@domain/layout/objects';
 import type { AlignTarget, DistributeAxis, IdPatch } from '@domain/layout/selection';
@@ -16,6 +17,7 @@ import { checkFonts } from '../lib/fonts';
 import { isImageFile, prepareImage } from '../lib/image';
 import { useEditionStore } from '../state/editionStore';
 import { useHistoryStore } from '../state/historyStore';
+import { useActor } from '../state/workStore';
 
 export const editionKey = (id: string) => ['edition', id] as const;
 export const articlesKey = (id: string) => ['articles', id] as const;
@@ -380,5 +382,38 @@ export function useEditionFiles() {
         return false;
       }
     },
+  };
+}
+
+/** Review, comments and versions for stories, done as the current person. */
+export function useWorkflowActions(beforeChange?: () => Promise<void>) {
+  const uc = useUseCases();
+  const editionId = useEditionId();
+  const queryClient = useQueryClient();
+  const actor = useActor();
+
+  const run = async <T>(work: () => Promise<T>): Promise<T | undefined> => {
+    try {
+      await beforeChange?.();
+      const result = await work();
+      await queryClient.invalidateQueries({ queryKey: articlesKey(editionId) });
+      return result;
+    } catch (error) {
+      toast.error(messageOf(error));
+      return undefined;
+    }
+  };
+
+  return {
+    actor,
+    changeStatus: (id: string, to: ArticleStatus, note?: string) =>
+      run(() => uc.changeArticleStatus.execute({ id, to, actor, ...(note !== undefined && { note }) })),
+    addNote: (id: string, text: string) => run(() => uc.addArticleNote.execute({ id, actor, text })),
+    resolveNote: (id: string, noteId: string, resolved: boolean) =>
+      run(() => uc.resolveArticleNote.execute({ id, noteId, resolved })),
+    saveVersion: (id: string, label?: string) =>
+      run(() => uc.saveArticleVersion.execute({ id, actor, ...(label && { label }) })),
+    restoreVersion: (id: string, versionId: string) =>
+      run(() => uc.restoreArticleVersion.execute({ id, versionId, actor })),
   };
 }
