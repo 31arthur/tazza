@@ -13,6 +13,7 @@ import { UpdateArticle } from '@domain/usecases/article/UpdateArticle';
 import { GetAssetBlob } from '@domain/usecases/asset/GetAssetBlob';
 import { SaveAsset } from '@domain/usecases/asset/SaveAsset';
 import { GetOrCreateEdition } from '@domain/usecases/edition/GetOrCreateEdition';
+import { RestoreEdition } from '@domain/usecases/edition/RestoreEdition';
 import { UpdateMasthead } from '@domain/usecases/edition/UpdateMasthead';
 import type { UseCases } from '@domain/usecases';
 import { AddElement } from '@domain/usecases/layout/AddElement';
@@ -49,6 +50,7 @@ export const createContainer = (): Container => {
   const useCases: UseCases = {
     getOrCreateEdition: new GetOrCreateEdition(editions, ids),
     updateMasthead: new UpdateMasthead(editions),
+    restoreEdition: new RestoreEdition(editions),
     listArticles: new ListArticles(articles),
     createArticle: new CreateArticle(articles, ids, clock),
     getArticle: new GetArticle(articles),

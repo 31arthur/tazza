@@ -80,6 +80,12 @@ The **masthead** is edited per edition: Telugu title, English name, tagline, col
 
 Besides stories, a page can hold **elements**, which are tiles too (drag, swap, resize and style them like stories): **photo** (image and caption), **text box**, **sidebar** (boxed, tinted text box), **label** (coloured section strip) and **ad placeholder** (hatched box with a note). Add them from the palette: click to append along the bottom, or drag onto a tile (middle = bottom of an empty slot, edge = beside it). A tile holds a story or an element, never both. Photo boxes count as flexible and soak up spare height like a hero photo.
 
+### Editor ergonomics
+
+- **Undo / redo** for every layout change (moves, styles, elements, masthead): Ctrl+Z, Ctrl+Y or Ctrl+Shift+Z. History is kept per edition for 50 steps and is cleared on reload.
+- **Shortcuts** (not active while typing in a field): Delete takes the story out of the selected tile, Shift+Delete deletes the space, Esc deselects, G toggles guides, + and - zoom.
+- **Column guides**: the six columns (cyan) and the live area (magenta) drawn over the page.
+
 ### Templates
 
 Templates are data (`domain/layout/templates.ts`): front page (8, 5 or 3 stories), inner page (6, 4 or 2 stories) and single story. Slot **priority** decides which story goes where: the heaviest stories take priority 1. **Auto layout** picks, for each page, the fullest template whose stories still fit (fill ≤ 100%), adds pages as needed and leaves no empty tiles.
