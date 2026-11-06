@@ -3,9 +3,12 @@ import { fitPage } from '../../layout/fit';
 import { buildTemplate, type TemplateId } from '../../layout/templates';
 import {
   emptyLeavesByPriority,
+  isEmptyLeaf,
   leavesOf,
   normalize,
   setLeafArticle,
+  setLeafElement,
+  type Leaf,
 } from '../../layout/tree';
 import type { ArticleRepository } from '../../ports/repositories/ArticleRepository';
 import type { EditionRepository } from '../../ports/repositories/EditionRepository';
@@ -35,16 +38,18 @@ export class ApplyTemplate {
     const { edition, lookup } = await loadLayoutContext(this.articles, this.editions, editionId);
     const page = findPage(edition, pageNumber);
 
-    const existing = leavesOf(page.layout)
-      .filter((l) => l.articleId !== undefined)
-      .sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99))
-      .map((l) => l.articleId as string);
+    const existing: Leaf[] = leavesOf(page.layout)
+      .filter((l) => !isEmptyLeaf(l))
+      .sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99));
 
     let layout = buildTemplate(templateId, this.ids);
     const slots = emptyLeavesByPriority(layout);
-    existing.slice(0, slots.length).forEach((articleId, i) => {
+    existing.slice(0, slots.length).forEach((held, i) => {
       const target = slots[i];
-      if (target) layout = setLeafArticle(layout, target.id, articleId);
+      if (!target) return;
+      layout = held.element
+        ? setLeafElement(layout, target.id, held.element)
+        : setLeafArticle(layout, target.id, held.articleId);
     });
 
     const updated = replacePage(edition, {

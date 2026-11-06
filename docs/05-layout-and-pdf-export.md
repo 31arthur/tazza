@@ -76,6 +76,10 @@ Rule weights are fixed: hairline 0.2 mm between columns, standard 0.3 mm between
 
 The **masthead** is edited per edition: Telugu title, English name, tagline, colour, left and right **ears** (small boxed teasers; first line is the bold headline), a top strip, and colour-registration marks along the bottom edge.
 
+### Layout elements
+
+Besides stories, a page can hold **elements**, which are tiles too (drag, swap, resize and style them like stories): **photo** (image and caption), **text box**, **sidebar** (boxed, tinted text box), **label** (coloured section strip) and **ad placeholder** (hatched box with a note). Add them from the palette: click to append along the bottom, or drag onto a tile (middle = bottom of an empty slot, edge = beside it). A tile holds a story or an element, never both. Photo boxes count as flexible and soak up spare height like a hero photo.
+
 ### Templates
 
 Templates are data (`domain/layout/templates.ts`): front page (8, 5 or 3 stories), inner page (6, 4 or 2 stories) and single story. Slot **priority** decides which story goes where: the heaviest stories take priority 1. **Auto layout** picks, for each page, the fullest template whose stories still fit (fill ≤ 100%), adds pages as needed and leaves no empty tiles.

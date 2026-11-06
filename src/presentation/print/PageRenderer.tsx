@@ -5,6 +5,7 @@ import { layoutRects, type PlacedLeaf } from '@domain/layout/tree';
 import type { Masthead as MastheadSettings } from '@domain/layout/style';
 import { GRID } from '@domain/services/PageGeometry';
 import { ArticleView } from './ArticleView';
+import { ElementView } from './ElementView';
 import { LeafFrame } from './LeafFrame';
 import { Folio, Masthead, RunningHeader } from './PageChrome';
 
@@ -27,7 +28,13 @@ interface Props {
 export function PrintLeaf({ placed, article }: RenderLeafArgs) {
   return (
     <LeafFrame placed={placed}>
-      {article && <ArticleView article={article} cols={placed.cols} leaf={placed.leaf} />}
+      {article ? (
+        <ArticleView article={article} cols={placed.cols} leaf={placed.leaf} />
+      ) : (
+        placed.leaf.element && (
+          <ElementView element={placed.leaf.element} cols={placed.cols} leaf={placed.leaf} />
+        )
+      )}
     </LeafFrame>
   );
 }

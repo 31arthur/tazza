@@ -4,6 +4,7 @@ import { fitPage, pageFill, type ArticleLookup } from '../../layout/fit';
 import { autoTemplateCandidates, buildTemplate, slotCount } from '../../layout/templates';
 import {
   emptyLeavesByPriority,
+  isEmptyLeaf,
   leavesOf,
   makeLeaf,
   normalize,
@@ -75,7 +76,7 @@ export class AutoLayout {
 
     pages.forEach((page, i) => {
       if (queue.length === 0) return;
-      const hasStories = leavesOf(page.layout).some((l) => l.articleId !== undefined);
+      const hasStories = leavesOf(page.layout).some((l) => !isEmptyLeaf(l));
       if (!hasStories) {
         // An untouched page can take whichever template suits the stories left to place.
         pages[i] = { ...page, layout: chooseLayout(page.number) };

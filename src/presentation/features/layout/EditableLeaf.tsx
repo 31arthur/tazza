@@ -2,9 +2,23 @@ import { useState } from 'react';
 import { GripVertical } from 'lucide-react';
 import { detectLanguage } from '@domain/services/detectLanguage';
 import { ArticleView } from '../../print/ArticleView';
+import { ElementView } from '../../print/ElementView';
 import { LeafFrame } from '../../print/LeafFrame';
 import type { RenderLeafArgs } from '../../print/PageRenderer';
 import type { DragSource } from './useLayoutDnd';
+
+const elementLabel = (el: NonNullable<RenderLeafArgs['placed']['leaf']['element']>): string => {
+  switch (el.type) {
+    case 'photo':
+      return el.caption || 'Photo';
+    case 'text':
+      return el.heading || 'Text box';
+    case 'label':
+      return el.text || 'Label';
+    case 'ad':
+      return 'Advertisement';
+  }
+};
 
 interface Props extends RenderLeafArgs {
   selected: boolean;
@@ -41,10 +55,12 @@ export function EditableLeaf({
             fromLeafId: leaf.id,
             label: article.headline.trim() || '…',
           });
+        } else if (leaf.element) {
+          onStartDrag(e, { fromLeafId: leaf.id, label: elementLabel(leaf.element) });
         }
       }}
       style={{
-        cursor: article ? 'grab' : 'default',
+        cursor: article || leaf.element ? 'grab' : 'default',
         outline: selected ? '0.7mm solid #2563eb' : '0.2mm dashed #94a3b8',
         outlineOffset: '-0.2mm',
         opacity: dragging ? 0.4 : 1,
@@ -59,6 +75,8 @@ export function EditableLeaf({
           leaf={leaf}
           onOverflowChange={setOverflowing}
         />
+      ) : leaf.element ? (
+        <ElementView element={leaf.element} cols={placed.cols} leaf={leaf} />
       ) : (
         <div
           style={{
@@ -76,7 +94,7 @@ export function EditableLeaf({
           {emptyText}
         </div>
       )}
-      {article && selected && (
+      {(article || leaf.element) && selected && (
         <GripVertical
           aria-hidden
           style={{ position: 'absolute', top: '1mm', right: '1mm', width: '5mm', height: '5mm', color: '#2563eb' }}

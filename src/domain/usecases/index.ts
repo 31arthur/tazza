@@ -8,6 +8,7 @@ import type { LoadSampleStories } from './article/LoadSampleStories';
 import type { UpdateArticle } from './article/UpdateArticle';
 import type { GetOrCreateEdition } from './edition/GetOrCreateEdition';
 import type { UpdateMasthead } from './edition/UpdateMasthead';
+import type { AddElement } from './layout/AddElement';
 import type { AddPage } from './layout/AddPage';
 import type { ApplyTemplate } from './layout/ApplyTemplate';
 import type { AutoFitPage } from './layout/AutoFitPage';
@@ -21,6 +22,7 @@ import type { RemoveSlot } from './layout/RemoveSlot';
 import type { ResizeSplit } from './layout/ResizeSplit';
 import type { SetSlotRole } from './layout/SetSlotRole';
 import type { SetSlotStyle } from './layout/SetSlotStyle';
+import type { UpdateElement } from './layout/UpdateElement';
 
 /** Everything the presentation layer may call. Built in the composition root. */
 export interface UseCases {
@@ -38,6 +40,8 @@ export interface UseCases {
   removePage: RemovePage;
   applyTemplate: ApplyTemplate;
   dropArticle: DropArticle;
+  addElement: AddElement;
+  updateElement: UpdateElement;
   placeArticle: PlaceArticle;
   clearSlot: ClearSlot;
   removeSlot: RemoveSlot;

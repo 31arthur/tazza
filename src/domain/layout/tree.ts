@@ -1,5 +1,6 @@
 import { LayoutError } from '../errors/DomainError';
 import type { IdGenerator } from '../ports/services/IdGenerator';
+import type { Element } from './element';
 import type { LeafStyle } from './style';
 import { COLUMN_WIDTH_MM, GRID, liveRectMm, type RectMm } from '../services/PageGeometry';
 
@@ -21,6 +22,8 @@ export interface Leaf {
   /** Template slots are filled in priority order (1 = most important). */
   readonly priority?: number;
   readonly articleId?: string;
+  /** A non-story tile (photo, text box, label, ad). A tile holds a story or an element, never both. */
+  readonly element?: Element;
 }
 
 export interface Split {
@@ -48,9 +51,18 @@ export const makeLeaf = (
 });
 
 export const withArticle = (leaf: Leaf, articleId: string | undefined): Leaf => {
-  const { articleId: _dropped, ...rest } = leaf;
+  const { articleId: _dropped, element: _element, ...rest } = leaf;
   return articleId === undefined ? rest : { ...rest, articleId };
 };
+
+export const withElement = (leaf: Leaf, element: Element): Leaf => {
+  const { articleId: _dropped, element: _old, ...rest } = leaf;
+  return { ...rest, element };
+};
+
+/** A tile with neither a story nor an element. */
+export const isEmptyLeaf = (leaf: Leaf): boolean =>
+  leaf.articleId === undefined && leaf.element === undefined;
 
 export const leavesOf = (node: LayoutNode): Leaf[] =>
   node.kind === 'leaf' ? [node] : node.children.flatMap(leavesOf);
@@ -73,6 +85,9 @@ export const setLeafArticle = (
   articleId: string | undefined,
 ): LayoutNode => mapLeaves(node, (l) => (l.id === leafId ? withArticle(l, articleId) : l));
 
+export const setLeafElement = (node: LayoutNode, leafId: string, element: Element): LayoutNode =>
+  mapLeaves(node, (l) => (l.id === leafId ? withElement(l, element) : l));
+
 export const setLeafRole = (node: LayoutNode, leafId: string, role: SlotRole): LayoutNode =>
   mapLeaves(node, (l) => (l.id === leafId ? { ...l, role } : l));
 
@@ -88,18 +103,26 @@ export const setLeafStyle = (
     return style === null ? rest : { ...rest, style: { ..._old, ...style } };
   });
 
-export const swapArticles = (node: LayoutNode, aId: string, bId: string): LayoutNode => {
-  const a = findLeaf(node, aId)?.articleId;
-  const b = findLeaf(node, bId)?.articleId;
-  return mapLeaves(node, (l) =>
-    l.id === aId ? withArticle(l, b) : l.id === bId ? withArticle(l, a) : l,
-  );
+/** Exchanges what two tiles hold (story or element); each tile keeps its own role and style. */
+export const swapContents = (node: LayoutNode, aId: string, bId: string): LayoutNode => {
+  const a = findLeaf(node, aId);
+  const b = findLeaf(node, bId);
+  if (!a || !b) return node;
+  const put = (target: Leaf, from: Leaf): Leaf => {
+    const { articleId: _a, element: _e, ...rest } = target;
+    return {
+      ...rest,
+      ...(from.articleId !== undefined && { articleId: from.articleId }),
+      ...(from.element !== undefined && { element: from.element }),
+    };
+  };
+  return mapLeaves(node, (l) => (l.id === aId ? put(l, b) : l.id === bId ? put(l, a) : l));
 };
 
 /** Empty slots in the order they should be filled. */
 export const emptyLeavesByPriority = (node: LayoutNode): Leaf[] =>
   leavesOf(node)
-    .filter((l) => l.articleId === undefined)
+    .filter(isEmptyLeaf)
     .sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99));
 
 /** Removes a tile; its space goes to a neighbour and one-child splits collapse. */
@@ -137,7 +160,7 @@ export function removeLeaf(node: LayoutNode, leafId: string): LayoutNode | undef
 export function pruneEmpty(node: LayoutNode): LayoutNode | undefined {
   let tree: LayoutNode | undefined = node;
   for (const leaf of leavesOf(node)) {
-    if (leaf.articleId === undefined && tree) tree = removeLeaf(tree, leaf.id);
+    if (isEmptyLeaf(leaf) && tree) tree = removeLeaf(tree, leaf.id);
   }
   return tree;
 }

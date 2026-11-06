@@ -11,7 +11,7 @@ const articleOf = (node: LayoutNode, lookup: ArticleLookup): Article | undefined
 /** Hero photos can grow to soak up spare height, so they get the slack first. */
 const heroCount = (node: LayoutNode, lookup: ArticleLookup): number =>
   node.kind === 'leaf'
-    ? hasHero(articleOf(node, lookup))
+    ? hasHero(articleOf(node, lookup)) || node.element?.type === 'photo'
       ? 1
       : 0
     : node.children.reduce((n, c) => n + heroCount(c, lookup), 0);
