@@ -8,7 +8,9 @@
     "layout": "Layout",
     "preview": "Preview",
     "templates": "Templates",
-    "photos": "Photos"
+    "photos": "Photos",
+    "newsroom": "Newsroom",
+    "studio": "Studio"
   },
   "edition": {
     "date": "Edition date"
@@ -57,7 +59,11 @@
     "imageFailed": "Could not add the image",
     "loadSamples": "Load sample stories",
     "samplesLoaded": "{{count}} sample stories added",
-    "dateline": "Dateline (place, e.g. HYDERABAD:)"
+    "dateline": "Dateline (place, e.g. HYDERABAD:)",
+    "welcomeTitle": "Write something fresh",
+    "welcomeEmpty": "Start your first story, or load a few samples to look around.",
+    "focus": "Focus",
+    "exitFocus": "Exit focus"
   },
   "layout": {
     "autoLayout": "Auto layout",
@@ -393,7 +399,9 @@
     "backupFailed": "The backup could not be made.",
     "restore": "Restore edition from a backup file",
     "restored": "Edition restored.",
-    "noCompanion": "One-click export needs the Tazza dev server with Chrome, Edge or Chromium installed. Use Print / Save as PDF instead."
+    "noCompanion": "One-click export needs the Tazza dev server with Chrome, Edge or Chromium installed. Use Print / Save as PDF instead.",
+    "printDialog": "Print…",
+    "backupLabel": "Edition backup file"
   },
   "workflow": {
     "title": "Review",
@@ -403,7 +411,7 @@
       "approved": "Approved"
     },
     "roles": {
-      "reporter": "Reporter",
+      "reporter": "Author",
       "editor": "Editor",
       "designer": "Designer"
     },
@@ -445,5 +453,200 @@
     "error": "Sync problem",
     "lastSynced": "Last synced at {{time}}.",
     "conflicts": "Changed on two computers at once; this computer's version was kept:"
+  },
+  "shell": {
+    "home": "Back to the front page"
+  },
+  "account": {
+    "workingAs": "Working as",
+    "signOut": "Sign out"
+  },
+  "rail": {
+    "title": "Today's edition",
+    "write": "Write",
+    "review": "Review",
+    "arrange": "Arrange",
+    "publish": "Publish",
+    "notYours": "This step belongs to another role",
+    "writeHint_one": "{{count}} draft left",
+    "writeHint_other": "{{count}} drafts left",
+    "reviewHint_one": "{{count}} story to review",
+    "reviewHint_other": "{{count}} stories to review",
+    "arrangeHint_one": "{{count}} story to place",
+    "arrangeHint_other": "{{count}} stories to place",
+    "publishHint_one": "{{count}} not approved",
+    "publishHint_other": "{{count}} not approved"
+  },
+  "newsroom": {
+    "title": "Newsroom",
+    "subtitle": "Every story in today's edition, and what each one needs next.",
+    "empty": "No stories yet. Write one, or load samples to see how the board works.",
+    "none": {
+      "draft": "Nothing being written.",
+      "review": "Nothing waiting for review.",
+      "approved": "Nothing approved yet."
+    },
+    "waitingForPage_one": "{{count}} approved story is not on a page yet.",
+    "waitingForPage_other": "{{count}} approved stories are not on a page yet."
+  },
+  "coach": {
+    "title": "Story coach",
+    "readTime_one": "{{count}} min read",
+    "readTime_other": "{{count}} min read",
+    "hint": {
+      "draft": "Write freely. When it feels ready, send it to the editor.",
+      "review": "With the editor now. You will see comments here.",
+      "approved": "Approved. The designer can place it on a page."
+    },
+    "checklist": "Before you send",
+    "items": {
+      "headline": "A headline under 90 characters",
+      "deck": "A sub-headline",
+      "dateline": "A dateline (place)",
+      "byline": "Your byline",
+      "length": "At least 80 words",
+      "photo": "A photo"
+    },
+    "notesAndVersions": "Comments and versions"
+  },
+  "home": {
+    "navHow": "How it works",
+    "navRoles": "Roles",
+    "navHelp": "Smart help",
+    "signIn": "Sign in",
+    "continue": "Continue",
+    "badge": "A newspaper studio for Telugu and English",
+    "heroLine1": "Write. Review. Arrange. Publish.",
+    "heroLine2": "తాజా వార్తలు, తాజా పేజీలు",
+    "heroText": "One calm place where authors write, editors shape the day, and designers lay out A3 pages that print exactly as you see them. Telugu and English, side by side.",
+    "signInTitle": "Step into the newsroom",
+    "signInHint": "No password needed. Pick your name and your role.",
+    "yourName": "Your name",
+    "namePlaceholder": "e.g. Asha",
+    "yourRole": "I am the...",
+    "enter": "Enter the newsroom",
+    "mockNote": "This is a demo sign-in. Nothing leaves this computer.",
+    "welcomeBack": "Welcome back, {{name}}",
+    "openDesk": "Open my desk",
+    "howTitle": "A day at the paper, in four steps",
+    "howText": "Everyone sees the same rail at the top of the screen, so the whole team knows what is left before the press.",
+    "by": "Mostly done by the {{role}}",
+    "steps": {
+      "write": {
+        "title": "Write",
+        "text": "Authors write in Telugu or English. The language is detected as they type, and a checklist says what is missing."
+      },
+      "review": {
+        "title": "Review",
+        "text": "Editors read, comment, send back or approve. Every change is saved as a version."
+      },
+      "arrange": {
+        "title": "Arrange",
+        "text": "Designers drop approved stories onto pages. Tazza suggests spacing and colour, and you accept what you like."
+      },
+      "publish": {
+        "title": "Publish",
+        "text": "Preflight checks the pages, then one click makes a PDF or page images that match the screen."
+      }
+    },
+    "rolesTitle": "Three roles, one edition",
+    "rolesText": "Pick the hat that fits your day. You can change it at any time from the menu at the top right.",
+    "signInAs": "Sign in as {{role}}",
+    "roles": {
+      "reporter": {
+        "title": "Writes the stories",
+        "short": "Write and send stories for review",
+        "p1": "A distraction-free page to write on",
+        "p2": "A checklist and word count that keep you on track",
+        "p3": "Sends stories to the editor in one click"
+      },
+      "editor": {
+        "title": "Edits and runs the day",
+        "short": "Review, edit, approve and arrange",
+        "p1": "A board of every story by status",
+        "p2": "Approve, send back with a note, or reopen",
+        "p3": "Can write and arrange pages too"
+      },
+      "designer": {
+        "title": "Arranges the pages",
+        "short": "Lay out pages and prepare print",
+        "p1": "A calm page studio with suggestions",
+        "p2": "Colour coding and spacing in one click",
+        "p3": "Preflight, PDF and page images"
+      }
+    },
+    "helpTitle": "Help that stays out of the way",
+    "helpText": "Suggestions are plain rules a designer would use. They are always optional and one click to undo.",
+    "help": {
+      "colour": {
+        "title": "Colour by section",
+        "text": "Sports, politics, business and more are recognised in English and Telugu and coloured to match."
+      },
+      "spacing": {
+        "title": "Spacing that fits",
+        "text": "Pages tell you when they are too full or too empty, and re-fit the columns for you."
+      },
+      "language": {
+        "title": "Telugu and English together",
+        "text": "Proper Telugu shaping on screen and in print, with the language detected as you write."
+      },
+      "team": {
+        "title": "Works as a team",
+        "text": "Comments, versions and roles, and sync between computers when you want it."
+      },
+      "offline": {
+        "title": "Works offline",
+        "text": "Everything is stored on your computer first, so a bad connection never stops the day."
+      },
+      "checks": {
+        "title": "Checks before print",
+        "text": "Missing photos, soft pictures, unapproved stories and fonts are caught before the press."
+      }
+    },
+    "ctaTitle": "Ready for tomorrow's front page?",
+    "ctaButton": "Sign in and start",
+    "footer": "Tazza · తాజా — made for daily newspapers"
+  },
+  "studio": {
+    "add": "Add",
+    "pageTools": "Page tools",
+    "layers": "Layers",
+    "masthead": "Masthead"
+  },
+  "publish": {
+    "title": "Ready to publish?",
+    "hint": "Check the pages, then download them.",
+    "checks": "Checks",
+    "ready": "All clear",
+    "recheck": "Check again",
+    "marksNote": "Adds a larger sheet with trim marks and 3 mm bleed."
+  },
+  "advisor": {
+    "title": "Suggestions",
+    "allGood": "Nothing to suggest. This page looks balanced.",
+    "note": "Suggestions are simple newsroom rules. Nothing changes until you press a button, and Undo takes it back.",
+    "applyAll": "Apply all",
+    "kinds": {
+      "colour": "Colour",
+      "spacing": "Spacing",
+      "balance": "Balance",
+      "content": "Content"
+    },
+    "actions": {
+      "styles": "Colour-code stories",
+      "fit": "Re-fit the page",
+      "autoLayout": "Place them automatically"
+    },
+    "messages": {
+      "unplaced_one": "{{count}} story is waiting for a page.",
+      "unplaced_other": "{{count}} stories are waiting for a page.",
+      "overfull": "The page is {{percent}}% full: the text will not fit. Re-fitting shares the space again.",
+      "roomy": "The page is only {{percent}}% full. Re-fitting gives the extra room to photos and lead stories.",
+      "colour_one": "{{count}} story belongs to a section that is not colour-coded yet.",
+      "colour_other": "{{count}} stories belong to sections that are not colour-coded yet.",
+      "twoLeads": "{{count}} stories are set as the lead, so they compete for attention. Keep one.",
+      "longHeadline": "The lead headline is {{chars}} characters. Shorter headlines read faster.",
+      "noPicture": "No picture on this page. A photo makes a page easier to enter."
+    }
   }
 }

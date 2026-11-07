@@ -8,6 +8,7 @@ import { wordCount, bodyParagraphs, statusOf, type Article, type ArticlePatch } 
 import { canEditText } from '@domain/entities/Workflow';
 import { detectLanguage } from '@domain/services/detectLanguage';
 import { Input } from '../../components/ui/input';
+import { cn } from '../../lib/utils';
 import { useUseCases } from '../../hooks/AppContext';
 import { isImageFile, prepareImage } from '../../lib/image';
 import { AssetPicker } from '../assets/AssetPicker';
@@ -19,16 +20,18 @@ import { ImageNode } from './extensions/ImageNode';
 import { LanguageAttr } from './extensions/LanguageAttr';
 import { StatusBadge } from './StatusBadge';
 import { useAutosave } from './useAutosave';
-import { WorkflowPanel } from './WorkflowPanel';
+import { StoryCoach } from './StoryCoach';
 
 interface Props {
   article: Article;
+  /** Hides the side companion so only the page is left. */
+  focus?: boolean;
 }
 
 const titleClass =
   'w-full resize-none border-0 bg-transparent p-0 outline-none field-sizing-content placeholder:text-neutral-300';
 
-export function ArticleEditor({ article }: Props) {
+export function ArticleEditor({ article, focus = false }: Props) {
   const { t } = useTranslation();
   const { updateArticle, saveAsset } = useUseCases();
   const queryClient = useQueryClient();
@@ -117,91 +120,107 @@ export function ArticleEditor({ article }: Props) {
   );
 
   return (
-    <div className="mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)_17rem] items-start gap-6 p-6">
-    <div className="flex min-w-0 flex-col gap-4">
-      <div className="flex items-center justify-between text-xs text-muted-foreground" aria-live="polite">
-        <span className="flex items-center gap-2">
-          <StatusBadge status={statusOf(article)} />
-          {t('write.words', { count: words })}
-          {readOnly && <span>· {t('workflow.readOnly')}</span>}
-        </span>
-        <span>{t(`save.${status}`)}</span>
-      </div>
-
-      <div className="paper flex flex-col gap-2 rounded-md border bg-white p-6 shadow-sm">
-        <textarea
-          rows={1}
-          defaultValue={article.headline}
-          lang={detectLanguage(article.headline)}
-          placeholder={t('write.headline')}
-          aria-label={t('write.headline')}
-          readOnly={readOnly}
-          onChange={(e) => schedule({ headline: e.target.value })}
-          className={`${titleClass} headline text-4xl`}
-          style={{ lineHeight: 1.3 }}
-        />
-        <textarea
-          rows={1}
-          defaultValue={article.subHeadline}
-          lang={detectLanguage(article.subHeadline)}
-          placeholder={t('write.subHeadline')}
-          aria-label={t('write.subHeadline')}
-          readOnly={readOnly}
-          onChange={(e) => schedule({ subHeadline: e.target.value })}
-          className={`${titleClass} text-xl font-semibold text-neutral-700`}
-          style={{ lineHeight: 1.5 }}
-        />
-        <Input
-          defaultValue={article.dateline ?? ''}
-          lang={detectLanguage(article.dateline ?? '')}
-          placeholder={t('write.dateline')}
-          aria-label={t('write.dateline')}
-          readOnly={readOnly}
-          onChange={(e) => schedule({ dateline: e.target.value })}
-          className="h-8 border-0 border-b bg-transparent px-0 text-sm font-semibold shadow-none focus-visible:ring-0"
-        />
-        <Input
-          defaultValue={article.byline}
-          lang={detectLanguage(article.byline)}
-          placeholder={t('write.byline')}
-          aria-label={t('write.byline')}
-          readOnly={readOnly}
-          onChange={(e) => schedule({ byline: e.target.value })}
-          className="h-8 border-0 border-b bg-transparent px-0 text-sm shadow-none focus-visible:ring-0"
-        />
-      </div>
-
-      {editor && !readOnly && <EditorToolbar editor={editor} onPickImage={() => fileInput.current?.click()} onPickFromLibrary={() => setPicking(true)} />}
-      {picking && (
-        <AssetPicker
-          onClose={() => setPicking(false)}
-          onPick={(asset) =>
-            editorRef.current
-              ?.chain()
-              .focus()
-              .insertContent({
-                type: 'image',
-                attrs: { assetId: asset.id, caption: asset.caption ?? '', credit: asset.credit ?? '' },
-              })
-              .run()
-          }
-        />
+    <div
+      className={cn(
+        'mx-auto grid items-start gap-8 px-6 py-8',
+        focus ? 'max-w-3xl grid-cols-1' : 'max-w-6xl lg:grid-cols-[minmax(0,1fr)_18rem]',
       )}
-      <input
-        ref={fileInput}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={onFileChosen}
-        aria-hidden
-        tabIndex={-1}
-      />
+    >
+      <div className="flex min-w-0 flex-col gap-3">
+        <div className="flex items-center justify-between text-xs text-muted-foreground" aria-live="polite">
+          <span className="flex items-center gap-2">
+            <StatusBadge status={statusOf(article)} />
+            {t('write.words', { count: words })}
+            {readOnly && <span>· {t('workflow.readOnly')}</span>}
+          </span>
+          <span>{t(`save.${status}`)}</span>
+        </div>
 
-      <div className="paper editor-surface min-h-96 rounded-md border bg-white p-6 shadow-sm">
-        <EditorContent editor={editor} aria-label={t('write.body')} />
+        <div className="paper rounded-xl border bg-white shadow-sm">
+          {editor && !readOnly && (
+            <div className="sticky top-0 z-10 rounded-t-xl border-b bg-white/95 p-1.5 backdrop-blur">
+              <EditorToolbar
+                editor={editor}
+                onPickImage={() => fileInput.current?.click()}
+                onPickFromLibrary={() => setPicking(true)}
+              />
+            </div>
+          )}
+          <div className="flex flex-col gap-2 px-8 pt-8">
+            <textarea
+              rows={1}
+              defaultValue={article.headline}
+              lang={detectLanguage(article.headline)}
+              placeholder={t('write.headline')}
+              aria-label={t('write.headline')}
+              readOnly={readOnly}
+              onChange={(e) => schedule({ headline: e.target.value })}
+              className={`${titleClass} headline text-4xl`}
+              style={{ lineHeight: 1.3 }}
+            />
+            <textarea
+              rows={1}
+              defaultValue={article.subHeadline}
+              lang={detectLanguage(article.subHeadline)}
+              placeholder={t('write.subHeadline')}
+              aria-label={t('write.subHeadline')}
+              readOnly={readOnly}
+              onChange={(e) => schedule({ subHeadline: e.target.value })}
+              className={`${titleClass} text-xl font-semibold text-neutral-600`}
+              style={{ lineHeight: 1.5 }}
+            />
+            <div className="grid grid-cols-2 gap-4 border-y py-1">
+              <Input
+                defaultValue={article.dateline ?? ''}
+                lang={detectLanguage(article.dateline ?? '')}
+                placeholder={t('write.dateline')}
+                aria-label={t('write.dateline')}
+                readOnly={readOnly}
+                onChange={(e) => schedule({ dateline: e.target.value })}
+                className="h-8 border-0 bg-transparent px-0 text-sm font-semibold shadow-none focus-visible:ring-0"
+              />
+              <Input
+                defaultValue={article.byline}
+                lang={detectLanguage(article.byline)}
+                placeholder={t('write.byline')}
+                aria-label={t('write.byline')}
+                readOnly={readOnly}
+                onChange={(e) => schedule({ byline: e.target.value })}
+                className="h-8 border-0 bg-transparent px-0 text-sm shadow-none focus-visible:ring-0"
+              />
+            </div>
+          </div>
+          <div className="editor-surface min-h-96 px-8 pb-10 pt-4">
+            <EditorContent editor={editor} aria-label={t('write.body')} />
+          </div>
+        </div>
+
+        {picking && (
+          <AssetPicker
+            onClose={() => setPicking(false)}
+            onPick={(asset) =>
+              editorRef.current
+                ?.chain()
+                .focus()
+                .insertContent({
+                  type: 'image',
+                  attrs: { assetId: asset.id, caption: asset.caption ?? '', credit: asset.credit ?? '' },
+                })
+                .run()
+            }
+          />
+        )}
+        <input
+          ref={fileInput}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={onFileChosen}
+          aria-hidden
+          tabIndex={-1}
+        />
       </div>
-    </div>
-    <WorkflowPanel article={article} flush={flush} />
+      {!focus && <StoryCoach article={article} flush={flush} />}
     </div>
   );
 }

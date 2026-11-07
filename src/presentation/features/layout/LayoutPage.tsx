@@ -9,6 +9,7 @@ import {
   Trash2,
   Undo2,
   Wand2,
+  Wrench,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -36,6 +37,10 @@ import {
   useUndoRedo,
 } from '../queries';
 import { ColumnGuides } from './ColumnGuides';
+import { Popover } from '../../components/Popover';
+import { Collapsible } from '../../components/Collapsible';
+import { advisePage, type Suggestion } from '@domain/services/designAdvisor';
+import { SuggestionsMenu } from './SuggestionsMenu';
 import { ContinuePanel } from './ContinuePanel';
 import { DividerHandle } from './DividerHandle';
 import { EditableLeaf } from './EditableLeaf';
@@ -203,6 +208,14 @@ export function LayoutPage() {
   const fill = pageFill(page.layout, page.number, (id) => articles.get(id));
   const fillPct = Math.round(fill * 100);
   const hasStories = leavesOf(page.layout).some((l) => l.articleId);
+  const suggestions = advisePage({ layout: page.layout, articles, fill, unplacedCount: unplaced.length });
+  const applySuggestion = async (s: Suggestion) => {
+    const action = s.action;
+    if (!action) return;
+    if (action.type === 'fit') await actions.autoFitPage(page.number);
+    else if (action.type === 'autoLayout') await actions.autoLayout();
+    else await actions.setSlotStyles(page.number, action.patches);
+  };
 
   const goToPage = (n: number) => {
     setPageNumber(n);
@@ -244,104 +257,9 @@ export function LayoutPage() {
   };
 
   return (
-    <div className="grid h-full grid-cols-[17rem_1fr_15rem]">
+    <div className="grid h-full grid-cols-[15rem_1fr_16rem]">
       {/* Left: tools and unplaced stories */}
       <aside className="flex min-h-0 flex-col overflow-y-auto border-r bg-card">
-        {!masterBeingEdited && (
-        <div className="flex flex-col gap-2 border-b p-3">
-          <Button onClick={() => void actions.autoLayout()} disabled={unplaced.length === 0}>
-            <Wand2 /> {t('layout.autoLayout')}
-          </Button>
-          <Button variant="outline" onClick={() => void actions.autoFitPage(page.number)}>
-            <Maximize2 /> {t('layout.autoFit')}
-          </Button>
-          <select
-            aria-label={t('layout.template')}
-            className={selectClass}
-            value=""
-            onChange={(e) => {
-              if (e.target.value) void actions.applyTemplate(page.number, e.target.value as TemplateId);
-            }}
-          >
-            <option value="">{t('layout.template')}</option>
-            {TEMPLATE_IDS.map((id) => (
-              <option key={id} value={id}>
-                {t(`layout.templates.${id}`)}
-              </option>
-            ))}
-          </select>
-          <Button
-            variant="ghost"
-            onClick={() => {
-              if (window.confirm(t('layout.confirmClear'))) {
-                setSelectedLeafId(undefined);
-                setPageNumber(1);
-                void actions.clearLayout();
-              }
-            }}
-          >
-            <Trash2 /> {t('layout.clear')}
-          </Button>
-          {pageTemplates.length > 0 && (
-            <select
-              aria-label={t('templates.applyToPage')}
-              className={selectClass}
-              value=""
-              onChange={(e) => {
-                if (e.target.value) void actions.applyPageTemplate(page.number, e.target.value);
-              }}
-            >
-              <option value="">{t('templates.applyToPage')}</option>
-              {pageTemplates.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          )}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={() => {
-                const name = window.prompt(t('templates.pageName'));
-                if (name !== null) void libraryActions.savePageTemplate(page.number, name);
-              }}
-            >
-              {t('templates.savePage')}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={() => {
-                const name = window.prompt(t('templates.editionName'));
-                if (name !== null) void libraryActions.saveEditionTemplate(name);
-              }}
-            >
-              {t('templates.saveEdition')}
-            </Button>
-          </div>
-        </div>
-        )}
-        {!masterBeingEdited && (
-          <ElementPalette
-            onStartDrag={dnd.start}
-            onAdd={(kind) => void actions.addElement(page.number, { kind })}
-          />
-        )}
-        <ObjectPalette onAdd={(tool) => void addObject(tool)} />
-        <LayersPanel
-          objects={pageObjects}
-          selectedIds={objs.selectedIds}
-          onSelect={(id, additive) => {
-            setSelectedLeafId(undefined);
-            objs.pick(id, additive);
-          }}
-          onPatch={(id, patch) => void actions.updateObject(page.number, id, patch)}
-          onArrange={(id, op) => void actions.reorderObjects(page.number, [id], op)}
-        />
         <h2 className="px-3 pt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {t('layout.unplaced')} ({unplaced.length})
         </h2>
@@ -390,7 +308,7 @@ export function LayoutPage() {
           ))}
         </ul>
         <p className="border-t p-3 text-xs text-muted-foreground">{t('layout.dragHint')}</p>
-        <p className="border-t p-3 text-[11px] text-muted-foreground">{t('layout.shortcuts')}</p>
+        
       </aside>
 
       {/* Centre: page tabs + canvas */}
@@ -480,6 +398,101 @@ export function LayoutPage() {
                 : t('layout.fill', { pct: fillPct })}
             </span>
           )}
+          <SuggestionsMenu suggestions={suggestions} onApply={applySuggestion} />
+          {!masterBeingEdited && (
+            <Popover label={<><Plus /> {t('studio.add')}</>} widthClass="w-80">
+              <div className="flex flex-col gap-3">
+        {!masterBeingEdited && (
+          <ElementPalette
+            onStartDrag={dnd.start}
+            onAdd={(kind) => void actions.addElement(page.number, { kind })}
+          />
+        )}
+        <ObjectPalette onAdd={(tool) => void addObject(tool)} />
+              </div>
+            </Popover>
+          )}
+          <Popover label={<><Wrench /> {t('studio.pageTools')}</>} widthClass="w-80">
+            <div className="flex flex-col gap-4">
+        {!masterBeingEdited && (
+        <div className="flex flex-col gap-2">
+          <Button onClick={() => void actions.autoLayout()} disabled={unplaced.length === 0}>
+            <Wand2 /> {t('layout.autoLayout')}
+          </Button>
+          <Button variant="outline" onClick={() => void actions.autoFitPage(page.number)}>
+            <Maximize2 /> {t('layout.autoFit')}
+          </Button>
+          <select
+            aria-label={t('layout.template')}
+            className={selectClass}
+            value=""
+            onChange={(e) => {
+              if (e.target.value) void actions.applyTemplate(page.number, e.target.value as TemplateId);
+            }}
+          >
+            <option value="">{t('layout.template')}</option>
+            {TEMPLATE_IDS.map((id) => (
+              <option key={id} value={id}>
+                {t(`layout.templates.${id}`)}
+              </option>
+            ))}
+          </select>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              if (window.confirm(t('layout.confirmClear'))) {
+                setSelectedLeafId(undefined);
+                setPageNumber(1);
+                void actions.clearLayout();
+              }
+            }}
+          >
+            <Trash2 /> {t('layout.clear')}
+          </Button>
+          {pageTemplates.length > 0 && (
+            <select
+              aria-label={t('templates.applyToPage')}
+              className={selectClass}
+              value=""
+              onChange={(e) => {
+                if (e.target.value) void actions.applyPageTemplate(page.number, e.target.value);
+              }}
+            >
+              <option value="">{t('templates.applyToPage')}</option>
+              {pageTemplates.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          )}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => {
+                const name = window.prompt(t('templates.pageName'));
+                if (name !== null) void libraryActions.savePageTemplate(page.number, name);
+              }}
+            >
+              {t('templates.savePage')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => {
+                const name = window.prompt(t('templates.editionName'));
+                if (name !== null) void libraryActions.saveEditionTemplate(name);
+              }}
+            >
+              {t('templates.saveEdition')}
+            </Button>
+          </div>
+        </div>
+        )}
+              <div className="flex flex-col gap-2 border-t pt-3">
           <MasterBar
             masters={masters}
             assignedId={page.masterId}
@@ -491,6 +504,9 @@ export function LayoutPage() {
             onRename={renameMaster}
             onDelete={deleteMaster}
           />
+              </div>
+            </div>
+          </Popover>
           <label className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
             {t('layout.zoom')}
             <input
@@ -768,13 +784,29 @@ export function LayoutPage() {
         ) : (
           <div className="flex flex-col gap-4">
             <p className="text-sm text-muted-foreground">{t('layout.hint')}</p>
+            <Collapsible title={t('studio.masthead')}>
             <MastheadPanel
               key={editionId}
               settings={resolveMasthead(edition.masthead)}
               onChange={(patch) => void actions.updateMasthead(patch)}
             />
+            </Collapsible>
           </div>
         )}
+        <div className="mt-4">
+          <Collapsible title={t('studio.layers')}>
+        <LayersPanel
+          objects={pageObjects}
+          selectedIds={objs.selectedIds}
+          onSelect={(id, additive) => {
+            setSelectedLeafId(undefined);
+            objs.pick(id, additive);
+          }}
+          onPatch={(id, patch) => void actions.updateObject(page.number, id, patch)}
+          onArrange={(id, op) => void actions.reorderObjects(page.number, [id], op)}
+        />
+          </Collapsible>
+        </div>
       </aside>
 
       {dnd.drag && (

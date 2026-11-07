@@ -55,6 +55,7 @@ Dependencies point **inward** to the domain. The domain imports nothing from Rea
 | [docs/10-decisions.md](docs/10-decisions.md) | Architecture decision log |
 | [docs/11-newsroom-layout-research.md](docs/11-newsroom-layout-research.md) | Research on layout tools and practice, reference page anatomy, feature spec |
 | [docs/12-studio-design-plan.md](docs/12-studio-design-plan.md) | Tazza Studio: vision, capability map, architecture, component inventory, phased roadmap |
+| [docs/13-redesign.md](docs/13-redesign.md) | The redesign: roles, the four-step workflow, the screens and the suggestion engine |
 | [CLAUDE.md](CLAUDE.md) | Rules for AI coding agents working in this repo |
 
 ## Getting started (once scaffolded)

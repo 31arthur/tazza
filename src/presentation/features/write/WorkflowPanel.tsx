@@ -26,8 +26,11 @@ const when = (at: number) =>
 export function WorkflowPanel({
   article,
   flush,
+  compact = false,
 }: {
   article: Article;
+  /** Hides the status block, for when it is shown elsewhere. */
+  compact?: boolean;
   /** Saves any typing still waiting, so a status change never works from stale text. */
   flush: () => Promise<void>;
 }) {
@@ -56,6 +59,7 @@ export function WorkflowPanel({
 
   return (
     <aside className="flex flex-col gap-5 text-sm" aria-label={t('workflow.title')}>
+      {!compact && (
       <section className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -81,6 +85,7 @@ export function WorkflowPanel({
           </p>
         )}
       </section>
+      )}
 
       <section className="flex flex-col gap-2">
         <h3 className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">

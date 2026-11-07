@@ -72,6 +72,7 @@ import { RemoveSlot } from '@domain/usecases/layout/RemoveSlot';
 import { ResizeSplit } from '@domain/usecases/layout/ResizeSplit';
 import { SetSlotRole } from '@domain/usecases/layout/SetSlotRole';
 import { UnlinkContinuation } from '@domain/usecases/layout/UnlinkContinuation';
+import { SetSlotStyles } from '@domain/usecases/layout/SetSlotStyles';
 import { SetSlotStyle } from '@domain/usecases/layout/SetSlotStyle';
 import { UpdateElement } from '@domain/usecases/layout/UpdateElement';
 
@@ -156,6 +157,7 @@ export const createContainer = (): Container => {
     removeSlot: new RemoveSlot(articles, editions, ids),
     setSlotRole: new SetSlotRole(articles, editions),
     setSlotStyle: new SetSlotStyle(articles, editions),
+    setSlotStyles: new SetSlotStyles(articles, editions),
     resizeSplit: new ResizeSplit(articles, editions),
     autoFitPage: new AutoFitPage(articles, editions),
     clearLayout: new ClearLayout(editions, ids),

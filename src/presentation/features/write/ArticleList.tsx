@@ -3,7 +3,6 @@ import { FilePlus2, Sparkles, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { bodyParagraphs, statusOf, type Article } from '@domain/entities/Article';
 import { detectLanguage } from '@domain/services/detectLanguage';
-import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { cn } from '../../lib/utils';
 import { StatusBadge } from './StatusBadge';
@@ -74,7 +73,6 @@ export function ArticleList({
                       >
                         {title === '' ? t('write.untitled') : title}
                       </div>
-                      <StatusBadge status={statusOf(article)} className="mt-1" />
                       {snippet !== '' && (
                         <div
                           lang={detectLanguage(snippet)}
@@ -83,9 +81,10 @@ export function ArticleList({
                           {snippet}
                         </div>
                       )}
-                      <Badge variant={page ? 'secondary' : 'outline'} className="mt-2">
-                        {page ? t('write.placed', { page }) : t('write.unplaced')}
-                      </Badge>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <StatusBadge status={statusOf(article)} />
+                        {page && <span className="text-xs text-muted-foreground">{t('write.placed', { page })}</span>}
+                      </div>
                     </button>
                     <Button
                       variant="ghost"

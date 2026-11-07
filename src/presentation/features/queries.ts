@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import type { Article } from '@domain/entities/Article';
 import type { Asset, AssetMeta } from '@domain/entities/Asset';
 import type { Edition } from '@domain/entities/Edition';
 import type { ArticleStatus } from '@domain/entities/Workflow';
@@ -13,6 +14,7 @@ import type { LeafStyle, Masthead } from '@domain/layout/style';
 import type { SlotRole } from '@domain/layout/tree';
 import type { DropZone } from '@domain/usecases/layout/DropArticle';
 import { useUseCases } from '../hooks/AppContext';
+import { createSampleImages } from '../lib/sampleImages';
 import { checkFonts } from '../lib/fonts';
 import { isImageFile, prepareImage } from '../lib/image';
 import { useEditionStore } from '../state/editionStore';
@@ -166,6 +168,8 @@ export function useLayoutActions(masterId?: string) {
       apply(() =>
         uc.setSlotStyle.execute({ editionId, pageNumber, leafId, style, ...(role && { role }) }),
       ),
+    setSlotStyles: (pageNumber: number, patches: readonly { leafId: string; style: Partial<LeafStyle> }[]) =>
+      apply(() => uc.setSlotStyles.execute({ editionId, pageNumber, patches })),
     createMaster: async (name: string, fromPageNumber?: number): Promise<string | undefined> => {
       let id: string | undefined;
       const ok = await apply(async () => {
@@ -415,5 +419,26 @@ export function useWorkflowActions(beforeChange?: () => Promise<void>) {
       run(() => uc.saveArticleVersion.execute({ id, actor, ...(label && { label }) })),
     restoreVersion: (id: string, versionId: string) =>
       run(() => uc.restoreArticleVersion.execute({ id, versionId, actor })),
+  };
+}
+
+/** Starting a new story or filling the desk with samples; both refresh the lists. */
+export function useStoryActions() {
+  const { createArticle, loadSampleStories, autoLayout } = useUseCases();
+  const editionId = useEditionId();
+  const queryClient = useQueryClient();
+
+  return {
+    create: async (): Promise<Article> => {
+      const article = await createArticle.execute({ editionId });
+      await queryClient.invalidateQueries({ queryKey: articlesKey(editionId) });
+      return article;
+    },
+    loadSamples: async (): Promise<Article[]> => {
+      const created = await loadSampleStories.execute({ editionId, images: await createSampleImages() });
+      queryClient.setQueryData(editionKey(editionId), await autoLayout.execute({ editionId }));
+      await queryClient.invalidateQueries({ queryKey: articlesKey(editionId) });
+      return created;
+    },
   };
 }
