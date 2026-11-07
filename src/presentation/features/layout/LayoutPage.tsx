@@ -54,7 +54,7 @@ import { ObjectPalette } from './ObjectPalette';
 import { ObjectPanel } from './ObjectPanel';
 import { ObjectsEditor } from './ObjectsEditor';
 import { GuidesLayer, RULER_PX, Ruler } from './Rulers';
-import { StylePanel } from './StylePanel';
+import { StyleMore, StyleQuick, StyleSaved } from './StylePanel';
 import { useGuideDrag } from './useGuideDrag';
 import { useLayoutDnd, type DragSource, type DropTarget } from './useLayoutDnd';
 import { useObjectSelection } from './useObjectSelection';
@@ -686,7 +686,7 @@ export function LayoutPage() {
           <div className="flex flex-col gap-3">
             <div
               lang={detectLanguage(selectedArticle?.headline ?? '')}
-              className="font-semibold"
+              className="font-display text-lg font-bold leading-snug"
             >
               {selectedArticle
                 ? selectedArticle.headline.trim() || t('write.untitled')
@@ -694,6 +694,20 @@ export function LayoutPage() {
                   ? t(`elements.kinds.${selectedLeaf.element.type === 'text' ? 'text' : selectedLeaf.element.type}`)
                   : t('layout.emptySlot')}
             </div>
+            {selectedLeaf.element && (
+              <ElementPanel
+                tileId={selectedLeaf.id}
+                element={selectedLeaf.element}
+                frameMm={rects.leaves.find((l) => l.leaf.id === selectedLeaf.id)?.rect}
+                onChange={(element) =>
+                  void actions.updateElement(page.number, selectedLeaf.id, element)
+                }
+              />
+            )}
+            <StyleQuick
+              leaf={selectedLeaf}
+              onChange={(style) => void actions.setSlotStyle(page.number, selectedLeaf.id, style)}
+            />
             <label className="flex flex-col gap-1 text-xs text-muted-foreground">
               {t('layout.role')}
               <select
@@ -710,76 +724,80 @@ export function LayoutPage() {
                 ))}
               </select>
             </label>
-            {selectedArticle && edition.pages.length > 1 && (
-              <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-                {t('layout.moveToPage')}
-                <select
-                  className={selectClass}
-                  value={page.number}
-                  onChange={(e) => {
-                    const target = Number(e.target.value);
-                    const articleId = selectedArticle.id;
-                    setSelectedLeafId(undefined);
-                    void actions.placeArticle(target, articleId).then((ok) => {
-                      if (ok) setPageNumber(target);
-                    });
+            <Collapsible title={t('studio.moreStyle')}>
+              <StyleMore
+                leaf={selectedLeaf}
+                onChange={(style) => void actions.setSlotStyle(page.number, selectedLeaf.id, style)}
+              />
+            </Collapsible>
+            <Collapsible title={t('style.saved')}>
+              <StyleSaved
+                leaf={selectedLeaf}
+                onApplySaved={(role, style) =>
+                  void actions.setSlotStyle(page.number, selectedLeaf.id, style, role)
+                }
+              />
+            </Collapsible>
+            {selectedArticle && (
+              <Collapsible
+                title={t('flow.title')}
+                defaultOpen={flow.get(selectedLeaf.id)?.continuedToPage !== undefined || selectedLeaf.continuesFrom !== undefined}
+              >
+                <ContinuePanel
+                  key={selectedLeaf.id}
+                  leaf={selectedLeaf}
+                  slice={flow.get(selectedLeaf.id)}
+                  pageNumbers={edition.pages.map((p) => p.number)}
+                  currentPage={page.number}
+                  onContinue={(to) => void actions.continueStory(page.number, selectedLeaf.id, to)}
+                  onUnlink={(id) => void actions.unlinkContinuation(id)}
+                />
+              </Collapsible>
+            )}
+            <Collapsible title={t('studio.moveOrRemove')}>
+              {selectedArticle && edition.pages.length > 1 && (
+                <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+                  {t('layout.moveToPage')}
+                  <select
+                    className={selectClass}
+                    value={page.number}
+                    onChange={(e) => {
+                      const target = Number(e.target.value);
+                      const articleId = selectedArticle.id;
+                      setSelectedLeafId(undefined);
+                      void actions.placeArticle(target, articleId).then((ok) => {
+                        if (ok) setPageNumber(target);
+                      });
+                    }}
+                  >
+                    {edition.pages.map((p) => (
+                      <option key={p.number} value={p.number}>
+                        {t('layout.page', { n: p.number })}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              {(selectedArticle || selectedLeaf.element) && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    void actions.clearSlot(page.number, selectedLeaf.id);
                   }}
                 >
-                  {edition.pages.map((p) => (
-                    <option key={p.number} value={p.number}>
-                      {t('layout.page', { n: p.number })}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-            {(selectedArticle || selectedLeaf.element) && (
+                  {t('layout.clearSlot')}
+                </Button>
+              )}
               <Button
                 variant="outline"
                 onClick={() => {
-                  void actions.clearSlot(page.number, selectedLeaf.id);
+                  void actions.removeSlot(page.number, selectedLeaf.id);
+                  setSelectedLeafId(undefined);
                 }}
               >
-                {t('layout.clearSlot')}
+                {t('layout.removeSlot')}
               </Button>
-            )}
-            <Button
-              variant="outline"
-              onClick={() => {
-                void actions.removeSlot(page.number, selectedLeaf.id);
-                setSelectedLeafId(undefined);
-              }}
-            >
-              {t('layout.removeSlot')}
-            </Button>
-            {selectedArticle && (
-              <ContinuePanel
-                key={selectedLeaf.id}
-                leaf={selectedLeaf}
-                slice={flow.get(selectedLeaf.id)}
-                pageNumbers={edition.pages.map((p) => p.number)}
-                currentPage={page.number}
-                onContinue={(to) => void actions.continueStory(page.number, selectedLeaf.id, to)}
-                onUnlink={(id) => void actions.unlinkContinuation(id)}
-              />
-            )}
-            {selectedLeaf.element && (
-              <ElementPanel
-                tileId={selectedLeaf.id}
-                element={selectedLeaf.element}
-                frameMm={rects.leaves.find((l) => l.leaf.id === selectedLeaf.id)?.rect}
-                onChange={(element) =>
-                  void actions.updateElement(page.number, selectedLeaf.id, element)
-                }
-              />
-            )}
-            <StylePanel
-              leaf={selectedLeaf}
-              onChange={(style) => void actions.setSlotStyle(page.number, selectedLeaf.id, style)}
-              onApplySaved={(role, style) =>
-                void actions.setSlotStyle(page.number, selectedLeaf.id, style, role)
-              }
-            />
+            </Collapsible>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
