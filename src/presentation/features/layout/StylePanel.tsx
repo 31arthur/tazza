@@ -54,35 +54,38 @@ function Swatch({
   );
 }
 
-/** Style controls for one tile: colour-coded accent and tint, frame, headline font, labels. */
-export function StylePanel({ leaf, onChange, onApplySaved }: Props) {
+/** The two things people change most: the ink and the tint behind a story. */
+export function StyleQuick({ leaf, onChange }: Pick<Props, "leaf" | "onChange">) {
   const { t } = useTranslation();
   const look = resolveStyle(leaf);
-  const { data: library = [] } = useLibrary();
-  const { saveTileStyle } = useLibraryActions();
-  const saved = library.filter((item) => item.kind === 'tileStyle');
-
   return (
-    <div className="flex flex-col gap-3 border-t pt-3">
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {t('style.title')}
-      </h3>
-
+    <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-        {t('style.accent')}
+        {t("style.accent")}
         <div className="flex gap-2">
           {ACCENT_NAMES.map((name) => (
-            <Swatch
-              key={name}
-              color={PALETTE[name]}
-              label={t(`style.colors.${name}`)}
-              active={look.accent === name}
-              onClick={() => onChange({ accent: name })}
-            />
+            <Swatch key={name} color={PALETTE[name]} label={t(`style.colors.${name}`)} active={look.accent === name} onClick={() => onChange({ accent: name })} />
           ))}
         </div>
       </div>
+      <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+        {t("style.tint")}
+        <div className="flex gap-2">
+          {TINT_NAMES.map((name) => (
+            <Swatch key={name} color={name === "none" ? undefined : TINTS[name]} label={t(`style.tints.${name}`)} active={look.tint === name} onClick={() => onChange({ tint: name })} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
+/** Everything else about how a tile looks: headline, frame, kicker, jump line. */
+export function StyleMore({ leaf, onChange }: Pick<Props, "leaf" | "onChange">) {
+  const { t } = useTranslation();
+  const look = resolveStyle(leaf);
+  return (
+    <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1 text-xs text-muted-foreground">
         {t('style.headlineColor')}
         <div className="flex gap-2">
@@ -183,11 +186,18 @@ export function StylePanel({ leaf, onChange, onApplySaved }: Props) {
       <Button variant="outline" size="sm" onClick={() => onChange(null)}>
         {t('style.reset')}
       </Button>
+    </div>
+  );
+}
 
-      <div className="flex flex-col gap-2 border-t pt-3">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {t('style.saved')}
-        </h3>
+/** Saved styles: apply one to this tile, or save this tile's look for next time. */
+export function StyleSaved({ leaf, onApplySaved }: Pick<Props, "leaf" | "onApplySaved">) {
+  const { t } = useTranslation();
+  const { data: library = [] } = useLibrary();
+  const { saveTileStyle } = useLibraryActions();
+  const saved = library.filter((item) => item.kind === "tileStyle");
+  return (
+    <div className="flex flex-col gap-2">
         {saved.length > 0 && (
           <select
             className={selectClass}
@@ -216,7 +226,6 @@ export function StylePanel({ leaf, onChange, onApplySaved }: Props) {
         >
           {t('style.saveAs')}
         </Button>
-      </div>
     </div>
   );
 }

@@ -26,10 +26,7 @@ export function ContinuePanel({ leaf, slice, pageNumbers, currentPage, onContinu
   const isContinuation = leaf.continuesFrom !== undefined && slice !== undefined && !slice.first;
 
   return (
-    <div className="flex flex-col gap-2 border-t pt-3">
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {t('flow.title')}
-      </h3>
+    <div className="flex flex-col gap-2">
 
       {slice?.continuedFromPage !== undefined && (
         <p className="text-sm">{t('flow.fromInfo', { page: slice.continuedFromPage })}</p>

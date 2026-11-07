@@ -27,6 +27,14 @@ Access is a domain rule (`canOpen`, `landingFor` in `Workflow.ts`), enforced by 
 - **Studio** (`/layout`): the page canvas with a slim toolbar: pages, undo and redo, **Suggestions**, **Add** (story boxes, photos, text, shapes), **Page tools** (auto layout, fit page, templates, masters). The left tray holds only the stories waiting for a page. The right inspector shows what is selected; masthead and layers are collapsed until wanted.
 - **Publish** (`/preview`): the pages as they will print, and one panel: the preflight checks run automatically, then PDF (primary), page images, the print dialog, and backup.
 
+## The inspector
+
+What is selected decides what the right panel shows, and only the common controls are open.
+
+- **A story tile:** its name, the ink and tint swatches, and the tile kind (banner, lead, story...). Everything else is a closed section: *More style options* (headline colour, frame, font, kicker, jump line, reset), *Saved styles*, *Continue story* (opens by itself when the story already continues), and *Move or remove*. A photo or text box shows its content fields first.
+- **A free object:** its name and the controls for what it is (text, shape or image); *Position, size and order* (position, alignment, arrangement) is one closed section. Duplicate and Delete stay at the bottom.
+- **Nothing selected:** a one-line hint, with *Masthead* and *Layers* closed.
+
 ## Suggestions
 
 `designAdvisor.ts` is a pure function that reads the page and the stories and returns suggestions, each with an optional action:
@@ -41,4 +49,3 @@ The advice is plain rules, not a language model. That is deliberate: it works of
 
 - The demo sign-in has no passwords or accounts; anyone can pick any role.
 - Colour suggestions know the seven sections above; other sections get no suggestion.
-- The Studio's tile and object inspectors are still dense when something is selected; only their less used parts are collapsed.

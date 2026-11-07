@@ -611,7 +611,10 @@
     "add": "Add",
     "pageTools": "Page tools",
     "layers": "Layers",
-    "masthead": "Masthead"
+    "masthead": "Masthead",
+    "moreStyle": "More style options",
+    "moveOrRemove": "Move or remove",
+    "positionArrange": "Position, size and order"
   },
   "publish": {
     "title": "Ready to publish?",

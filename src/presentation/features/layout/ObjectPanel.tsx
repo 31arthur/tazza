@@ -31,6 +31,7 @@ import {
 import { PAINTS, paintColor, type HeadlineFont, type Paint } from '@domain/layout/style';
 import { detectLanguage } from '@domain/services/detectLanguage';
 import { Button } from '../../components/ui/button';
+import { Collapsible } from '../../components/Collapsible';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
 import { isImageFile } from '../../lib/image';
@@ -174,67 +175,6 @@ export function ObjectPanel({ object: o, onPatch, onAlign, onArrange, onDuplicat
         />
       </label>
 
-      <Section title={t('objects.geometry')}>
-        <div className="grid grid-cols-2 gap-2">
-          <Num label="X (mm)" value={o.x} onCommit={(x) => onPatch({ x })} />
-          <Num label="Y (mm)" value={o.y} onCommit={(y) => onPatch({ y })} />
-          <Num label={`${t('objects.width')} (mm)`} value={o.w} onCommit={(w) => onPatch({ w })} />
-          <Num label={`${t('objects.height')} (mm)`} value={o.h} onCommit={(h) => onPatch({ h })} />
-          <Num label={`${t('objects.rotation')} (°)`} value={o.rotation} onCommit={(rotation) => onPatch({ rotation })} />
-        </div>
-      </Section>
-
-      <Section title={t('objects.align')}>
-        <select
-          className={selectClass}
-          defaultValue="live"
-          aria-label={t('objects.alignTo')}
-          onChange={(e) => (alignTo.current = e.target.value as 'page' | 'live')}
-        >
-          <option value="live">{t('objects.toMargins')}</option>
-          <option value="page">{t('objects.toPage')}</option>
-        </select>
-        <div className="flex gap-1">
-          {ALIGN_MODES.map((mode) => {
-            const Icon = ALIGN_ICONS[mode];
-            return (
-              <Button
-                key={mode}
-                size="icon"
-                variant="outline"
-                aria-label={t(`objects.alignModes.${mode}`)}
-                title={t(`objects.alignModes.${mode}`)}
-                onClick={() => onAlign(mode, alignTo.current)}
-              >
-                <Icon />
-              </Button>
-            );
-          })}
-        </div>
-      </Section>
-
-      <Section title={t('objects.arrange')}>
-        <div className="flex gap-1">
-          {([
-            ['front', BringToFront],
-            ['forward', ChevronUp],
-            ['backward', ChevronDown],
-            ['back', SendToBack],
-          ] as const).map(([op, Icon]) => (
-            <Button
-              key={op}
-              size="icon"
-              variant="outline"
-              aria-label={t(`objects.arrangeOps.${op}`)}
-              title={t(`objects.arrangeOps.${op}`)}
-              onClick={() => onArrange(op)}
-            >
-              <Icon />
-            </Button>
-          ))}
-        </div>
-      </Section>
-
       {o.kind === 'text' && (
         <Section title={t('objects.tools.text')}>
           <Textarea
@@ -336,6 +276,70 @@ export function ObjectPanel({ object: o, onPatch, onAlign, onArrange, onDuplicat
           )}
         </Section>
       )}
+
+      <Collapsible title={t('studio.positionArrange')}>
+      <Section title={t('objects.geometry')}>
+        <div className="grid grid-cols-2 gap-2">
+          <Num label="X (mm)" value={o.x} onCommit={(x) => onPatch({ x })} />
+          <Num label="Y (mm)" value={o.y} onCommit={(y) => onPatch({ y })} />
+          <Num label={`${t('objects.width')} (mm)`} value={o.w} onCommit={(w) => onPatch({ w })} />
+          <Num label={`${t('objects.height')} (mm)`} value={o.h} onCommit={(h) => onPatch({ h })} />
+          <Num label={`${t('objects.rotation')} (°)`} value={o.rotation} onCommit={(rotation) => onPatch({ rotation })} />
+        </div>
+      </Section>
+
+      <Section title={t('objects.align')}>
+        <select
+          className={selectClass}
+          defaultValue="live"
+          aria-label={t('objects.alignTo')}
+          onChange={(e) => (alignTo.current = e.target.value as 'page' | 'live')}
+        >
+          <option value="live">{t('objects.toMargins')}</option>
+          <option value="page">{t('objects.toPage')}</option>
+        </select>
+        <div className="flex gap-1">
+          {ALIGN_MODES.map((mode) => {
+            const Icon = ALIGN_ICONS[mode];
+            return (
+              <Button
+                key={mode}
+                size="icon"
+                variant="outline"
+                aria-label={t(`objects.alignModes.${mode}`)}
+                title={t(`objects.alignModes.${mode}`)}
+                onClick={() => onAlign(mode, alignTo.current)}
+              >
+                <Icon />
+              </Button>
+            );
+          })}
+        </div>
+      </Section>
+
+      <Section title={t('objects.arrange')}>
+        <div className="flex gap-1">
+          {([
+            ['front', BringToFront],
+            ['forward', ChevronUp],
+            ['backward', ChevronDown],
+            ['back', SendToBack],
+          ] as const).map(([op, Icon]) => (
+            <Button
+              key={op}
+              size="icon"
+              variant="outline"
+              aria-label={t(`objects.arrangeOps.${op}`)}
+              title={t(`objects.arrangeOps.${op}`)}
+              onClick={() => onArrange(op)}
+            >
+              <Icon />
+            </Button>
+          ))}
+        </div>
+      </Section>
+
+      </Collapsible>
 
       <div className="flex gap-2 border-t pt-3">
         <Button variant="outline" className="flex-1" onClick={onDuplicate}>
