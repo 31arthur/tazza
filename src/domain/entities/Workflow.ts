@@ -61,3 +61,20 @@ export const nextStatuses = (role: Role, from: ArticleStatus): ArticleStatus[] =
 export const canEditText = (role: Role, status: ArticleStatus): boolean =>
   (role === 'reporter' && status === 'draft') ||
   (role === 'editor' && status !== 'approved');
+
+/** The places in the app a person can go. */
+export type Area = 'write' | 'newsroom' | 'studio' | 'publish' | 'photos' | 'templates';
+
+const ACCESS: Readonly<Record<Role, readonly Area[]>> = {
+  reporter: ['write', 'photos', 'publish'],
+  editor: ['write', 'newsroom', 'studio', 'publish', 'photos', 'templates'],
+  designer: ['newsroom', 'studio', 'publish', 'photos', 'templates'],
+};
+
+export const canOpen = (role: Role, area: Area): boolean => ACCESS[role].includes(area);
+
+export const areasFor = (role: Role): readonly Area[] => ACCESS[role];
+
+/** Where each role starts the day: authors write, editors review, designers arrange. */
+export const landingFor = (role: Role): Area =>
+  role === 'reporter' ? 'write' : role === 'editor' ? 'newsroom' : 'studio';

@@ -61,6 +61,7 @@ import type { RemoveSlot } from './layout/RemoveSlot';
 import type { ResizeSplit } from './layout/ResizeSplit';
 import type { SetSlotRole } from './layout/SetSlotRole';
 import type { UnlinkContinuation } from './layout/UnlinkContinuation';
+import type { SetSlotStyles } from './layout/SetSlotStyles';
 import type { SetSlotStyle } from './layout/SetSlotStyle';
 import type { UpdateElement } from './layout/UpdateElement';
 
@@ -127,6 +128,7 @@ export interface UseCases {
   removeSlot: RemoveSlot;
   setSlotRole: SetSlotRole;
   setSlotStyle: SetSlotStyle;
+  setSlotStyles: SetSlotStyles;
   resizeSplit: ResizeSplit;
   autoFitPage: AutoFitPage;
   clearLayout: ClearLayout;

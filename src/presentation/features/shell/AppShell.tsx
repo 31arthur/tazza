@@ -1,93 +1,87 @@
 import { motion } from 'framer-motion';
+import { Image, Layers } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { canOpen, landingFor, type Area } from '@domain/entities/Workflow';
 import { LanguageSwitcher } from '../../components/LanguageSwitcher';
-import { SyncControl } from './SyncControl';
+import { AREA_INFO, pathOf } from '../../lib/areas';
 import { cn } from '../../lib/utils';
-import { ROLES } from '@domain/entities/Workflow';
 import { useEditionStore } from '../../state/editionStore';
 import { useWorkStore } from '../../state/workStore';
+import { AccountMenu } from './AccountMenu';
+import { SyncControl } from './SyncControl';
+import { WorkflowRail } from './WorkflowRail';
 
-const NAV = [
-  { to: '/write', key: 'write' },
-  { to: '/layout', key: 'layout' },
-  { to: '/preview', key: 'preview' },
-  { to: '/photos', key: 'photos' },
-  { to: '/templates', key: 'templates' },
-] as const;
+const AREA_BY_PATH = new Map<string, Area>(
+  (Object.keys(AREA_INFO) as Area[]).map((area) => [pathOf(area), area]),
+);
 
+const LIBRARY: { area: Area; icon: typeof Image }[] = [
+  { area: 'photos', icon: Image },
+  { area: 'templates', icon: Layers },
+];
+
+/**
+ * The frame around every working screen: a slim top bar, the four-step rail, and the screen.
+ * It also keeps people out of screens their role does not use.
+ */
 export function AppShell() {
   const { t } = useTranslation();
-  const location = useLocation();
+  const { pathname } = useLocation();
+  const { signedIn, role } = useWorkStore();
   const editionId = useEditionStore((s) => s.editionId);
   const setEditionId = useEditionStore((s) => s.setEditionId);
-  const { name, role, setName, setRole } = useWorkStore();
+
+  if (!signedIn) return <Navigate to="/" replace />;
+  const area = AREA_BY_PATH.get(pathname);
+  if (area && !canOpen(role, area)) return <Navigate to={pathOf(landingFor(role))} replace />;
 
   return (
     <div className="flex h-screen flex-col print:block print:h-auto">
-      <header className="no-print flex h-14 shrink-0 items-center gap-6 border-b bg-card px-4">
-        <div className="flex items-baseline gap-2">
+      <header className="no-print flex h-14 shrink-0 items-center gap-4 border-b bg-card px-4">
+        <Link to="/" className="flex items-baseline gap-2" title={t('shell.home')}>
           <span lang="te" className="font-display text-xl font-bold">
             తాజా
           </span>
           <span className="text-sm font-semibold tracking-widest text-muted-foreground">TAZZA</span>
-        </div>
+        </Link>
         <nav className="flex gap-1">
-          {NAV.map(({ to, key }) => (
+          {LIBRARY.filter((l) => canOpen(role, l.area)).map(({ area: a, icon: Icon }) => (
             <NavLink
-              key={to}
-              to={to}
+              key={a}
+              to={pathOf(a)}
               className={({ isActive }) =>
                 cn(
-                  'rounded-md px-3 py-1.5 text-sm font-medium',
-                  isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-accent',
+                  'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-accent',
+                  isActive && 'bg-accent font-medium text-foreground',
                 )
               }
             >
-              {t(`nav.${key}`)}
+              <Icon className="size-4" />
+              <span className="hidden lg:inline">{t(`nav.${AREA_INFO[a].key}`)}</span>
             </NavLink>
           ))}
         </nav>
-        <div className="ml-auto flex items-center gap-4">
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t('workflow.yourName')}
-              aria-label={t('workflow.yourName')}
-              className="h-9 w-24 rounded-md border bg-transparent px-2 text-foreground"
-            />
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value as typeof role)}
-              aria-label={t('workflow.workingAs')}
-              className="h-9 rounded-md border bg-transparent px-2 text-foreground"
-            >
-              {ROLES.map((r) => (
-                <option key={r} value={r}>
-                  {t(`workflow.roles.${r}`)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <label className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="hidden xl:inline">{t('edition.date')}</span>
-            <input
-              type="date"
-              value={editionId}
-              onChange={(e) => e.target.value && setEditionId(e.target.value)}
-              className="h-9 rounded-md border bg-transparent px-2 text-foreground"
-            />
-          </label>
+        <div className="ml-auto flex items-center gap-2">
+          <input
+            type="date"
+            value={editionId}
+            aria-label={t('edition.date')}
+            title={t('edition.date')}
+            onChange={(e) => e.target.value && setEditionId(e.target.value)}
+            className="h-9 rounded-md border bg-transparent px-2 text-sm text-foreground"
+          />
           <SyncControl />
           <LanguageSwitcher />
+          <AccountMenu />
         </div>
       </header>
+      <WorkflowRail />
       <motion.main
-        key={location.pathname}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.15 }}
+        key={pathname}
+        initial={{ opacity: 0, y: 4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.18 }}
         className="min-h-0 flex-1 print:block"
       >
         <Outlet />

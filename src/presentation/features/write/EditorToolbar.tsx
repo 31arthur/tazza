@@ -74,7 +74,7 @@ export function EditorToolbar({ editor, onPickImage, onPickFromLibrary }: Props)
   return (
     <div
       role="toolbar"
-      className="sticky top-0 z-10 flex flex-wrap items-center gap-1 rounded-md border bg-card p-1 shadow-sm"
+      className="flex flex-wrap items-center gap-1"
     >
       {groups.map((group, gi) => (
         <div key={gi} className="flex items-center gap-1">
